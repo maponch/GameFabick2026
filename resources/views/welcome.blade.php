@@ -4,9 +4,5 @@
     @vite('resources/js/app.js')
 </head>
 <body>
-    <div id="app">
-        
-        <users-list></users-list>
-        
-    </div>
+    <div id="app"></div>
 </body>

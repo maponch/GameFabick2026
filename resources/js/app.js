@@ -1,9 +1,13 @@
 import { createApp } from 'vue'
-import UsersList from './components/UsersList.vue'
+import App from './App.vue'
+import vuetify from './plugins/vuetify'
 
-const app = createApp({})
+// styles icônes
+import '@mdi/font/css/materialdesignicons.css'
 
-app.component('users-list', UsersList)
+
+const app = createApp(App)
+app.use(vuetify)
 
 app.mount('#app')
 // import './bootstrap'
