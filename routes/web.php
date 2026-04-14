@@ -10,8 +10,11 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 
-Route::get('/', function () {
-    return redirect()->route('login.form');
+// Route::get('/', function () {
+//     return redirect()->route('login.form');
+// });
+Route::get('/', function (){
+    return view('welcome');
 });
 
 Route::get('/register', [RegisterController::class, 'showForm'])->name('register.form');
