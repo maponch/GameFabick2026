@@ -83,7 +83,7 @@ const { isDesktop } = useResponsive()
 const showOverlay = ref(false)
 
 const handleScroll = () => {
-  showOverlay.value = window.scrollY > 10
+  showOverlay.value = window.scrollY > 25
 }
 
 onMounted(() => {
@@ -110,13 +110,16 @@ onUnmounted(() => {
 .hero-overlay.active {
   opacity: 1;
 }
+.hero-overlay.active .hero-content {
+  transform: translateX(-50%) translateY(0);
+  transition: all 0.4s ease;
+}
 .hero-image img {
   object-position: bottom;
 }
 .hero-content {
   position: absolute;
   bottom: 60px;
-  /* 👈 clé ici */
   left: 50%;
   transform: translateX(-50%);
 
@@ -126,7 +129,7 @@ onUnmounted(() => {
   padding: 0 20px;
 }
 
-/* mobile adjustment */
+
 @media (max-width: 768px) {
   .hero-content {
     bottom: 40px;

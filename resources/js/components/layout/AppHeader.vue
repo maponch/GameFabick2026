@@ -6,8 +6,8 @@
     <v-spacer />
 
     <!-- bouton différent selon écran -->
-    <v-btn v-if="mdAndUp" variant="text">Login</v-btn>
-    <v-btn v-if="mdAndUp" variant="outlined">Register</v-btn>
+    <v-btn v-if="mdAndUp" variant="text" href="/login">Login</v-btn>
+    <v-btn v-if="mdAndUp" variant="outlined" href="/register">Register</v-btn>
 
     <v-btn v-else icon>
       <v-icon>mdi-menu</v-icon>

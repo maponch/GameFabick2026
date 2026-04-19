@@ -3,31 +3,51 @@
 @section('title', 'Connexion GameFabrick')
 
 @section('content')
-    <h1>Connexion</h1>
+<div class="auth-wrapper">
 
-    <form method="POST" action="{{ route('login.submit') }}">
-        @csrf
+    <div class="auth-card">
 
-        <div>
-            <label>Email</label>
-            <input type="email" name="email" value="{{ old('email') }}" required>
-            @error('email')
-                <span style="color:red">{{ $message }}</span>
-            @enderror
-        </div>
+        <h1 class="auth-title">Connexion</h1>
 
-        <div>
-            <label>Mot de passe</label>
-            <input type="password" name="password" required>
-            @error('password')
-                <span style="color:red">{{ $message }}</span>
-            @enderror
-        </div>
+        <p class="auth-subtitle">
+            Accède à ton espace GameFabrick 🎲
+        </p>
 
-        <button type="submit">Se connecter</button>
-    </form>
+        <form method="POST" action="{{ route('login.submit') }}" class="auth-form">
+            @csrf
 
-    <p>
-        Pas encore de compte ? <a href="{{ route('register.form') }}">S'inscrire</a>
-    </p>
+            <!-- EMAIL -->
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" value="{{ old('email') }}" required>
+                @error('email')
+                    <span class="error">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <!-- PASSWORD -->
+            <div class="form-group">
+                <label>Mot de passe</label>
+                <input type="password" name="password" required>
+                @error('password')
+                    <span class="error">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <!-- BUTTON -->
+            <button type="submit" class="btn-primary">
+                Se connecter
+            </button>
+
+        </form>
+
+        <p class="auth-footer">
+            Pas encore de compte ?
+            <a href="{{ route('register.form') }}">S'inscrire</a>
+        </p>
+
+    </div>
+
+</div>
+
 @endsection
