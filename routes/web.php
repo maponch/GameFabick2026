@@ -26,7 +26,8 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->name('dashboard')
-    ->middleware('auth');
+    ->middleware('auth'); 
+
 
 Route::middleware('auth')->group(function () {
     // profil
