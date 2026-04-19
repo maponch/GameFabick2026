@@ -1,40 +1,32 @@
 <template>
-  <v-card>
-    <v-img :src="isDesktop ? bannerDesktop : bannerMobile" :height="isDesktop ? 600 : 300" cover
-      class="d-flex align-center" 
-      content-class="hero-image" />
-  </v-card>
+  <v-container fluid class="pa-0">
 
-  <!-- HERO -->
-  <v-container class="text-center mt-10">
+    <v-img :src="isDesktop ? bannerDesktop : bannerMobile" :height="isDesktop ? '80vh' : '60vh'" cover class="hero-img d-flex align-center" content-class="hero-image">
 
-    <v-row align="center" justify="center">
+      <!-- OVERLAY -->
+      <div class="hero-overlay d-flex align-center justify-center" :class="{ active: showOverlay }">
 
-      <!-- TEXTE -->
-      <v-col cols="12" md="6">
-        <h1 class="text-h4 text-md-h2 font-weight-bold mb-4">
-          Crée ton jeu de société 🎲
-        </h1>
+        <v-container class="text-center text-white hero-content">
 
-        <p class="text-body-1 text-md-h6 mb-6">
-          Une plateforme pour imaginer, concevoir et partager tes jeux.
-        </p>
+          <h1 class="text-h3 text-md-h2 font-weight-bold mb-4">
+            Crée ton jeu de société 🎲
+          </h1>
 
-        <v-btn color="primary" size="large">
-          Commencer
-        </v-btn>
-      </v-col>
+          <p class="text-body-1 text-md-h6 mb-6 mx-auto hero-text">
+            Imagine, construis et partage tes propres jeux.
+          </p>
 
-      <!-- IMAGE -->
-      <v-col cols="12" md="6">
-        <v-img :src="isDesktop
-          ? 'https://picsum.photos/800/400'
-          : 'https://picsum.photos/400/250'" :height="isDesktop ? 350 : 200" cover class="rounded-lg" />
-      </v-col>
+          <v-btn color="primary" size="large">
+            Commencer
+          </v-btn>
 
-    </v-row>
+        </v-container>
+
+      </div>
+
+    </v-img>
+
   </v-container>
-
   <!-- FEATURES -->
   <v-container class="mt-15">
 
@@ -80,19 +72,64 @@
 </template>
 
 <script setup>
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useResponsive } from '@/composables/useResponsive'
 
-//import des images
 import bannerMobile from '@/assets/images/banner-mobile.jpg'
 import bannerDesktop from '@/assets/images/banner-desktop.jpg'
 
-const { isMobile, isDesktop } = useResponsive()
+const { isDesktop } = useResponsive()
+
+const showOverlay = ref(false)
+
+const handleScroll = () => {
+  showOverlay.value = window.scrollY > 10
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
 </script>
 
+<style scoped>
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom,
+      rgba(0, 0, 0, 0),
+      rgba(0, 0, 0, 0.75));
 
-<style scoped>  
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
 
+.hero-overlay.active {
+  opacity: 1;
+}
 .hero-image img {
   object-position: bottom;
+}
+.hero-content {
+  position: absolute;
+  bottom: 60px;
+  /* 👈 clé ici */
+  left: 50%;
+  transform: translateX(-50%);
+
+  text-align: center;
+  color: white;
+  max-width: 600px;
+  padding: 0 20px;
+}
+
+/* mobile adjustment */
+@media (max-width: 768px) {
+  .hero-content {
+    bottom: 40px;
+  }
 }
 </style>
