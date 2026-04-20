@@ -5,6 +5,7 @@
     <title>@yield('title', 'GameFabrick')</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body>
     <header>
@@ -36,3 +37,6 @@
     </footer>
 </body>
 </html>
+<script>
+    window.user = @json(Auth::user());
+</script>
