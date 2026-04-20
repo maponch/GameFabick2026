@@ -17,10 +17,13 @@
 
     <!-- SI CONNECTÉ -->
     <template v-else>
-      <v-btn variant="text" href="/dashboard">
+      <v-btn variant="text" to="/dashboard">
         Dashboard
       </v-btn>
-      <v-btn v-if="user?.role === 'admin'" href="/admin">
+      <v-btn variant="text" to="/user">
+        Profil
+      </v-btn>
+      <v-btn v-if="user?.role === 'admin'" to="/admin">
         Admin
       </v-btn>
 
