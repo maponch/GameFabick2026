@@ -20,7 +20,7 @@
       <v-btn variant="text" to="/dashboard">
         Dashboard
       </v-btn>
-      <v-btn variant="text" to="/user">
+      <v-btn variant="text" :to="{name: 'profile'}">
         Profil
       </v-btn>
       <v-btn v-if="user?.role === 'admin'" to="/admin">
