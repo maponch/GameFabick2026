@@ -6,13 +6,17 @@ import UserIndex from '../pages/user/index.vue'
 
 const routes = [
   { path: '/', component: Landing },
-  { path: '/dashboard', component: Dashboard },
+  {
+    path: '/dashboard',
+    component: Dashboard,
+    meta: { requiresAuth: true }
+  },
   {
     path: '/user',
     name: 'profile',
     component: UserIndex,
     meta: { requiresAuth: true }
-  }
+  },
 
 ]
 
@@ -21,14 +25,14 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach((to, from, next) => {
-  const user = window.user
+router.beforeEach((to, from) => {
 
-  if (to.meta.requiresAuth && !user) {
-    return next('/login')
+  const isAuth = !!localStorage.getItem('user')
+
+  if (to.meta.requiresAuth && !isAuth) {
+    window.location.href = '/login'
+    return
   }
-
-  next()
 })
 
 export default router

@@ -29,13 +29,24 @@ class RegisterController extends Controller
                 'regex:/[0-9]/',      // au moins un chiffre
                 'regex:/[@$!%*#?&]/', // au moins un caractère spécial
             ],
+            'photo' => [
+                'nullable',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:2048', // 2MB
+            ],
         ]);
+        $photoPath = null;
+        if ($request->hasFile('photo')) {
+            $photoPath = $request->file('photo')->store('profile_photos', 'public');
+        }
 
         $user = User::create([
             'username' => $request->username,
             'email'    => $request->email,
-            'password' => $request->password, // hashé automatiquement dans le modèle
+            'password' => $request->password, // Le mutateur dans le modèle User s'occupe du hash
             'role'     => 'user', // par défaut
+            'profile_photo' => $photoPath,
         ]);
 
         // Authentification immédiate

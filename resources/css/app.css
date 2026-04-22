@@ -110,3 +110,30 @@
 .auth-footer a {
     color: #3b82f6;
 }
+.form-input-file {
+    display: block;
+    margin-top: 8px;
+}
+input[type="file"] {
+    display: block !important;
+    opacity: 1 !important;
+    position: static !important;
+    visibility: visible !important;
+}
+.file-upload {
+    display: inline-block;
+    padding: 10px 15px;
+    background: #1976d2;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.file-upload:hover {
+    background: #1565c0;
+}
+.file-name {
+    margin-top: 8px;
+    font-size: 14px;
+    color: #666;
+}

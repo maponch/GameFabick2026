@@ -20,7 +20,7 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('register.submit') }}" class="auth-form">
+        <form method="POST" action="{{ route('register.submit') }}" class="auth-form" enctype="multipart/form-data">
             @csrf
 
             <!-- USERNAME -->
@@ -55,6 +55,18 @@
                 <label>Confirmer le mot de passe</label>
                 <input type="password" name="password_confirmation" required>
             </div>
+            {{-- PHOTO --}}
+            <div>
+                <label class="file-upload">
+                    📷 Ajouter une photo
+                    <input type="file" name="photo">
+                </label>
+                <p id="fileName" class="file-name">Aucun fichier sélectionné</p>
+
+                @error('photo')
+                    <span style="color:red">{{ $message }}</span>
+                @enderror
+            </div>
 
             <!-- BUTTON -->
             <button type="submit" class="btn-primary">
@@ -71,5 +83,18 @@
     </div>
 
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const input = document.getElementById('photoInput');
+    const fileName = document.getElementById('fileName');
+
+    if (!input) return;
+
+    input.addEventListener('change', function () {
+        const file = this.files[0];
+        fileName.textContent = file ? file.name : 'Aucun fichier sélectionné 555';
+    });
+});
+</script>
 
 @endsection
