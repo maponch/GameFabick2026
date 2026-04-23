@@ -40,3 +40,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::get('/admin', [AdminController::class, 'index'])->name('admin.dashboard');
 });
+
+Route::get('/{any}', function () {
+    return view('welcome'); // le nom de ta vue blade principale
+})->where('any', '.*');
