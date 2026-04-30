@@ -7,8 +7,10 @@ import UserIndex from '../pages/user/index.vue'
 
 const routes = [
   { path: '/', component: Landing },
-  { path: '/login', component: () => import('../pages/Login.vue') },
-  { path: '/register', component: () => import('../pages/Register.vue') },
+  { path: '/login', component: () => import('../pages/auth/Login.vue') },
+  { path: '/register', component: () => import('../pages/auth/Register.vue') },
+  { path: '/forgot-password', component: () => import('../pages/auth/ForgotPassword.vue') },
+  { path: '/reset-password', component: () => import('../pages/auth/ResetPassword.vue') },
   {
     path: '/dashboard',
     component: Dashboard,

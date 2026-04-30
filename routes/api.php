@@ -1,9 +1,10 @@
 <?php
 
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\PasswordResetController;
+use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\UserController;
 
 Route::middleware('throttle:5,1')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
@@ -21,3 +22,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/user/password', [UserController::class, 'updatePassword']);
     Route::post('/user/photo', [UserController::class, 'updatePhoto']);
 });
+
+// Mot de passe oublié (public)
+Route::post('/forgot-password', [PasswordResetController::class, 'sendOtp']);
+Route::post('/verify-otp', [PasswordResetController::class, 'verifyOtp']);
+Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);

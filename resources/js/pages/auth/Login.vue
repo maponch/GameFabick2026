@@ -44,6 +44,9 @@
             <v-btn variant="text" color="primary" to="/register" size="small">
               S'inscrire
             </v-btn>
+            <v-btn variant="text" color="primary" to="/forgot-password" size="small">
+              Mot de passe oublié ?
+            </v-btn>
           </v-card-actions>
 
         </v-card>
@@ -55,7 +58,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { api } from '../api'
+import { api } from '../../api'
 
 const router = useRouter()
 
