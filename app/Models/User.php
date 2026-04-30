@@ -38,10 +38,6 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
-    public function setPasswordAttribute($value)
-    {
-        $this->attributes['password'] = bcrypt($value);
-    }
 
     /**
      * Get the attributes that should be cast.
@@ -61,6 +57,6 @@ class User extends Authenticatable
     {
         return $this->profile_photo
             ? asset('storage/' . $this->profile_photo)
-            : asset('images/default-avatar.png');
+            : asset('images/default-profile.png');
     }
 }

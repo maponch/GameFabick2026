@@ -1,8 +1,12 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-    @vite('resources/js/app.js')
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameFabrick</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body>
     <div id="app"></div>
 </body>
+</html>

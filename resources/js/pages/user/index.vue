@@ -43,6 +43,7 @@ onMounted(async () => {
     await api.get('/sanctum/csrf-cookie') // ✅ initialise la session
     const { data } = await api.get('/user')
     user.value = data
+    console.log('User data:', data)
   } catch (e) {
     window.location.href = '/login'
   } finally {
