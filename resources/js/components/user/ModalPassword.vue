@@ -1,5 +1,5 @@
 <template>
-  <v-dialog :model-value="modelValue" max-width="400" @update:model-value="$emit('update:modelValue', $event)">
+  <v-dialog :model-value="modelValue" max-width="400" eager @update:model-value="$emit('update:modelValue', $event)">
     <v-card class="pa-4">
       <v-card-title>Modifier le mot de passe</v-card-title>
       <v-card-text>
@@ -9,7 +9,14 @@
           :disabled="saving" class="mb-2" />
         <v-text-field v-model="form.password" label="Nouveau mot de passe" :type="showNew ? 'text' : 'password'"
           :append-inner-icon="showNew ? 'mdi-eye-off' : 'mdi-eye'" @click:append-inner="showNew = !showNew"
-          variant="outlined" :error-messages="errors.password" :disabled="saving" class="mb-2" />
+          @update:model-value="val => form.password = val" variant="outlined" :error-messages="errors.password"
+          :disabled="saving" class="mb-1" />
+        <div v-if="form.password" class="mb-4">
+          <div class="text-caption mb-1">
+            Force : <strong :class="passwordStrength.color">{{ passwordStrength.label }}</strong>
+          </div>
+          <v-progress-linear :model-value="passwordStrength.score" :color="passwordStrength.color" height="4" rounded />
+        </div>
         <v-text-field v-model="form.password_confirmation" label="Confirmer le mot de passe"
           :type="showConfirm ? 'text' : 'password'" :append-inner-icon="showConfirm ? 'mdi-eye-off' : 'mdi-eye'"
           @click:append-inner="showConfirm = !showConfirm" variant="outlined"
@@ -26,6 +33,8 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { api } from '../../api'
+import { usePasswordStrength } from '../../composables/usePasswordStrength' 
+import { usePasswordValidation } from '../../composables/usePasswordValidation'
 
 const props = defineProps({
   modelValue: Boolean,
@@ -40,6 +49,9 @@ const showCurrent = ref(false)
 const showNew = ref(false)
 const showConfirm = ref(false)
 
+const { passwordStrength } = usePasswordStrength(() => form.value.password)
+const { validatePassword } = usePasswordValidation(() => form.value.password)
+
 watch(() => props.modelValue, (val) => {
   if (val) {
     form.value = { current_password: '', password: '', password_confirmation: '' }
@@ -49,6 +61,12 @@ watch(() => props.modelValue, (val) => {
 
 async function save() {
   errors.value = {}
+
+  const passwordError = validatePassword()
+  if (passwordError) {
+    errors.value.password = [passwordError]
+    return
+  }
 
   if (form.value.password !== form.value.password_confirmation) {
     errors.value.password_confirmation = ['Les mots de passe ne correspondent pas.']

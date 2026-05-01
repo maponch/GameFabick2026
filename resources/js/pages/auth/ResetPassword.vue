@@ -62,8 +62,17 @@
               <v-text-field v-model="form.password" label="Nouveau mot de passe"
                 :type="showPassword ? 'text' : 'password'" prepend-inner-icon="mdi-lock"
                 :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-                @click:append-inner="showPassword = !showPassword" variant="outlined" :error-messages="errors.password"
+                @click:append-inner="showPassword = !showPassword" 
+                @update:model-value="val => form.password = val"
+                variant="outlined" :error-messages="errors.password"
                 :disabled="loading" autocomplete="new-password" class="mb-2" />
+              <div v-if="form.password" class="mb-3">
+                <div class="text-caption mb-1">
+                  Force : <strong :class="passwordStrength.color">{{ passwordStrength.label }}</strong>
+                </div>
+                <v-progress-linear :model-value="passwordStrength.score" :color="passwordStrength.color" height="4"
+                  rounded />
+              </div>
 
               <v-text-field v-model="form.password_confirmation" label="Confirmer le mot de passe"
                 :type="showConfirm ? 'text' : 'password'" prepend-inner-icon="mdi-lock-check"
@@ -89,6 +98,8 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { api } from '../../api'
+import { usePasswordStrength } from '../../composables/usePasswordStrength'
+import { usePasswordValidation } from '../../composables/usePasswordValidation'
 
 const router = useRouter()
 const route = useRoute()
@@ -107,6 +118,9 @@ const successMessage = ref(null)
 const loading = ref(false)
 const showPassword = ref(false)
 const showConfirm = ref(false)
+
+const { passwordStrength } = usePasswordStrength(() => form.value.password)
+const { validatePassword } = usePasswordValidation(() => form.value.password)
 
 onMounted(() => otpRefs.value[0]?.focus())
 
@@ -169,6 +183,13 @@ async function resetPassword() {
     errors.value.password = ['Le mot de passe est requis.']
     return
   }
+  
+  const passwordError = validatePassword()
+  if (passwordError) {
+    errors.value.password = [passwordError]
+    return
+  }
+
 
   if (form.value.password !== form.value.password_confirmation) {
     errors.value.password_confirmation = ['Les mots de passe ne correspondent pas.']

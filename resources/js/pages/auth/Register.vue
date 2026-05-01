@@ -59,7 +59,7 @@
             <v-text-field v-model="form.password" label="Mot de passe" :type="showPassword ? 'text' : 'password'"
               prepend-inner-icon="mdi-lock" :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
               @click:append-inner="showPassword = !showPassword" variant="outlined" :error-messages="errors.password"
-              :disabled="loading" autocomplete="new-password" class="mb-2" />
+              :disabled="loading" autocomplete="new-password" class="mb-1" />
 
             <!-- Indicateur de force du mot de passe -->
             <div v-if="form.password" class="mb-4">
@@ -102,6 +102,8 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { api } from '../../api'
+import { usePasswordStrength } from '../../composables/usePasswordStrength'
+import { usePasswordValidation } from '../../composables/usePasswordValidation'
 
 const router = useRouter()
 
@@ -120,6 +122,9 @@ const showPassword = ref(false)
 const showPasswordConfirm = ref(false)
 const photoPreview = ref(null)
 const photoFile = ref(null)
+  
+const { passwordStrength } = usePasswordStrength(() => form.value.password)
+const { validatePassword } = usePasswordValidation(() => form.value.password)
 
 function handlePhoto(e) {
   const file = e.target.files[0]
@@ -146,25 +151,6 @@ function removePhoto() {
   photoInput.value.value = '' // reset l'input file
 }
 
-// Indicateur de force du mot de passe
-const passwordStrength = computed(() => {
-  const pwd = form.value.password
-  if (!pwd) return { score: 0, label: '', color: 'grey' }
-
-  let score = 0
-  if (pwd.length >= 8) score += 25
-  if (pwd.length >= 12) score += 15
-  if (/[A-Z]/.test(pwd)) score += 20
-  if (/[0-9]/.test(pwd)) score += 20
-  if (/[^A-Za-z0-9]/.test(pwd)) score += 20
-
-  if (score <= 25) return { score, label: 'Très faible', color: 'error' }
-  if (score <= 45) return { score, label: 'Faible', color: 'warning' }
-  if (score <= 65) return { score, label: 'Moyen', color: 'yellow-darken-2' }
-  if (score <= 80) return { score, label: 'Fort', color: 'success' }
-  return { score, label: 'Très fort', color: 'green-darken-2' }
-})
-
 // Validation côté client
 function validateForm() {
   const e = {}
@@ -179,10 +165,8 @@ function validateForm() {
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.email))
     e.email = ['L\'email n\'est pas valide.']
 
-  if (!form.value.password)
-    e.password = ['Le mot de passe est requis.']
-  else if (form.value.password.length < 8)
-    e.password = ['Le mot de passe doit faire au moins 8 caractères.']
+  const passwordError = validatePassword()
+  if (passwordError) e.password = [passwordError]
 
   if (form.value.password !== form.value.password_confirmation)
     e.password_confirmation = ['Les mots de passe ne correspondent pas.']

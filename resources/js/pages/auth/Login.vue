@@ -96,7 +96,6 @@ async function login() {
   errors.value = {}
 
   form.value.email = form.value.email.trim()
-  form.value.password = form.value.password.trim()
 
   console.log('Données envoyées:', {      
     email: form.value.email,
@@ -125,6 +124,7 @@ async function login() {
   } catch (e) {
     if (e.response?.status === 422) {
       // Erreurs de validation Laravel (identifiants invalides)
+      console.log('Erreurs Laravel:', e.response.data)
       errors.value = e.response.data.errors ?? {}
     } else if (e.response?.status === 429) {
       // Trop de tentatives (throttle)
