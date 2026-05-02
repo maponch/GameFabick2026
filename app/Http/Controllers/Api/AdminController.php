@@ -59,26 +59,32 @@ class AdminController extends Controller
     public function suspend(Request $request, User $user)
     {
         $request->validate([
-            'reason'     => 'required|string|max:500',
-            'expires_at' => 'nullable|date|after:now',
-            'permanent'  => 'boolean',
+            'reason'   => 'required|string|max:500',
+            'duration' => 'required|in:1_day,7_days,1_month,permanent',
         ]);
 
         if ($user->id === $request->user()->id) {
             return response()->json(['message' => 'Vous ne pouvez pas vous suspendre vous-même.'], 403);
         }
 
+        // Calcul automatique de expires_at
+        $expiresAt = match($request->duration) {
+            '1_day'   => now()->addDay(),
+            '7_days'  => now()->addDays(7),
+            '1_month' => now()->addMonth(),
+            'permanent' => null,
+        };
+
         // Désactive les suspensions actives précédentes
         Suspension::where('user_id', $user->id)
             ->where('is_active', true)
             ->update(['is_active' => false]);
 
-        // Crée la nouvelle suspension
         Suspension::create([
             'user_id'    => $user->id,
             'admin_id'   => $request->user()->id,
             'reason'     => $request->reason,
-            'expires_at' => $request->permanent ? null : $request->expires_at,
+            'expires_at' => $expiresAt,
             'is_active'  => true,
         ]);
 
@@ -91,8 +97,7 @@ class AdminController extends Controller
 
         $history->increment('suspension_count');
 
-        // Ban permanent si 3 suspensions ou si permanent demandé
-        if ($request->permanent || $history->suspension_count >= 3) {
+        if ($request->duration === 'permanent') {
             $history->update(['is_permanently_banned' => true]);
         }
 

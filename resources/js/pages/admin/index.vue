@@ -129,21 +129,24 @@
           <v-textarea v-model="suspendForm.reason" label="Raison de la suspension" variant="outlined" rows="3"
             :error-messages="suspendErrors.reason" class="mb-3" />
 
-          <v-checkbox v-model="suspendForm.permanent" label="Ban permanent" color="error" class="mb-2" />
+          <v-select v-model="suspendForm.duration" label="Durée de la suspension" variant="outlined"
+            :items="durationOptions" item-title="label" item-value="value" :error-messages="suspendErrors.duration" />
 
-          <v-text-field v-if="!suspendForm.permanent" v-model="suspendForm.expires_at" label="Date d'expiration"
-            type="datetime-local" variant="outlined" :error-messages="suspendErrors.expires_at" />
+          <v-alert v-if="suspendForm.duration === 'permanent'" type="error" variant="tonal" density="compact"
+            class="mt-3">
+            Cette action est irréversible — l'utilisateur sera banni définitivement.
+          </v-alert>
 
-          <v-alert v-if="userToSuspend?.suspension_count >= 2 && !suspendForm.permanent" type="warning" variant="tonal"
-            density="compact" class="mt-3">
-            Attention : c'est la {{ userToSuspend.suspension_count + 1 }}e suspension.
-            À 3 suspensions le ban devient permanent automatiquement.
+          <v-alert v-if="userToSuspend?.suspension_count >= 2 && suspendForm.duration !== 'permanent'" type="warning"
+            variant="tonal" density="compact" class="mt-3">
+            Attention : c'est la {{ userToSuspend.suspension_count + 1 }}e suspension de cet utilisateur.
           </v-alert>
 
         </v-card-text>
         <v-card-actions class="justify-end">
           <v-btn variant="text" @click="suspendDialog = false">Annuler</v-btn>
-          <v-btn color="warning" :loading="actionLoading" @click="suspendUser">
+          <v-btn :color="suspendForm.duration === 'permanent' ? 'error' : 'warning'" :loading="actionLoading"
+            @click="suspendUser">
             Suspendre
           </v-btn>
         </v-card-actions>
@@ -194,9 +197,15 @@ const deleteDialog = ref(false)
 const userToDelete = ref(null)
 
 // Suspension
+const durationOptions = [
+  { label: '1 jour', value: '1_day' },
+  { label: '7 jours', value: '7_days' },
+  { label: '1 mois', value: '1_month' },
+  { label: 'Définitif', value: 'permanent' },
+]
 const suspendDialog = ref(false)
 const userToSuspend = ref(null)
-const suspendForm = ref({ reason: '', expires_at: '', permanent: false })
+const suspendForm = ref({ reason: '', duration: '1_day' })
 const suspendErrors = ref({})
 
 const headers = [
@@ -262,8 +271,8 @@ async function suspendUser() {
     suspendErrors.value.reason = ['La raison est requise.']
     return
   }
-  if (!suspendForm.value.permanent && !suspendForm.value.expires_at) {
-    suspendErrors.value.expires_at = ['Choisissez une date ou cochez ban permanent.']
+  if (!suspendForm.value.duration) {
+    suspendErrors.value.duration = ['Choisissez une durée.']
     return
   }
 
@@ -276,7 +285,7 @@ async function suspendUser() {
         ...users.value[index],
         is_suspended: true,
         suspension_count: users.value[index].suspension_count + 1,
-        is_permanently_banned: suspendForm.value.permanent || users.value[index].suspension_count + 1 >= 3,
+        is_permanently_banned: suspendForm.value.duration === 'permanent',
       }
     }
     stats.value.suspended++
