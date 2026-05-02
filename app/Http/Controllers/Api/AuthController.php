@@ -23,11 +23,24 @@ class AuthController extends Controller
             ]);
         }
 
+        $user = Auth::user();
+
+        // ✅ Vérifie si le compte est suspendu
+        $suspension = $user->activeSuspension();
+        if ($suspension) {
+            Auth::guard('web')->logout();
+            throw ValidationException::withMessages([
+                'email' => [
+                    $suspension->expires_at
+                        ? 'Compte suspendu jusqu\'au ' . $suspension->expires_at->format('d/m/Y à H:i') . '. Raison : ' . $suspension->reason
+                        : 'Compte banni définitivement. Raison : ' . $suspension->reason
+                ],
+            ]);
+        }
+
         $request->session()->regenerate();
 
-        return response()->json([
-            'user' => Auth::user()
-        ]);
+        return response()->json(['user' => $user]);
     }
 
     public function logout(Request $request)
@@ -48,7 +61,16 @@ class AuthController extends Controller
             'profile_photo' => 'nullable|image|mimes:jpeg,png,webp|max:2048',
         ]);
 
-        // Stockage de la photo si fournie
+        // ✅ Vérifie si l'email est banni définitivement
+        $emailHash = hash('sha256', strtolower($data['email']));
+        $history = \App\Models\SuspensionHistory::where('email_hash', $emailHash)->first();
+
+        if ($history?->is_permanently_banned) {
+            throw ValidationException::withMessages([
+                'email' => ['Cette adresse email est bannie définitivement.'],
+            ]);
+        }
+
         if ($request->hasFile('profile_photo')) {
             $data['profile_photo'] = $request->file('profile_photo')
                 ->store('profile_photos', 'public');
@@ -58,7 +80,7 @@ class AuthController extends Controller
             'username'      => $data['username'],
             'email'         => $data['email'],
             'password'      => $data['password'],
-            'profile_photo' => $data['profile_photo'] ?? null, // null = photo par défaut via le modèle
+            'profile_photo' => $data['profile_photo'] ?? null,
         ]);
 
         Auth::login($user);

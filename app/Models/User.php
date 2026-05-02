@@ -59,4 +59,31 @@ class User extends Authenticatable
             ? asset('storage/' . $this->profile_photo)
             : asset('images/default-profile.png');
     }
+
+    // Relations avec les suspensions
+    public function suspensions()
+    {
+        return $this->hasMany(Suspension::class);
+    }
+
+    public function suspensionHistory()
+    {
+        return $this->hasOne(SuspensionHistory::class);
+    }
+
+    // Retourne la suspension active si elle existe
+    public function activeSuspension(): ?Suspension
+    {
+        return $this->suspensions()
+            ->where('is_active', true)
+            ->latest()
+            ->first()
+            ?->tap(fn($s) => $s->checkExpiry()) // vérifie l'expiration au passage
+            ?? null;
+    }
+
+    public function isSuspended(): bool
+    {
+        return $this->activeSuspension() !== null;
+    }
 }

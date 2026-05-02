@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\UserController;
@@ -27,3 +28,13 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::post('/forgot-password', [PasswordResetController::class, 'sendOtp']);
 Route::post('/verify-otp', [PasswordResetController::class, 'verifyOtp']);
 Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
+
+
+Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/stats', [AdminController::class, 'stats']);
+    Route::get('/users', [AdminController::class, 'users']);
+    Route::patch('/users/{user}/role', [AdminController::class, 'updateRole']);
+    Route::post('/users/{user}/suspend', [AdminController::class, 'suspend']);
+    Route::patch('/users/{user}/unsuspend', [AdminController::class, 'unsuspend']);
+    Route::delete('/users/{user}', [AdminController::class, 'destroy']);
+});
