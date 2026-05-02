@@ -11,6 +11,7 @@ const routes = [
   { path: '/register', component: () => import('../pages/auth/Register.vue') },
   { path: '/forgot-password', component: () => import('../pages/auth/ForgotPassword.vue') },
   { path: '/reset-password', component: () => import('../pages/auth/ResetPassword.vue') },
+  { path: '/verify-email', component: () => import('../pages/auth/VerifyEmail.vue') },
   {
     path: '/dashboard',
     component: Dashboard,
@@ -63,6 +64,10 @@ router.beforeEach(async (to) => {
   // Non connecté → login
   if (!user) return { path: '/login' }
 
+  if (!user.email_verified_at && to.path !== '/verify-email') {
+    return { path: '/verify-email' }
+  }
+  
   // Page admin → vérification du rôle
   if (to.meta.requiresAdmin && user.role !== 'admin') return { path: '/dashboard' }
 

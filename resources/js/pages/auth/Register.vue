@@ -186,7 +186,6 @@ async function register() {
   try {
     await api.get('/sanctum/csrf-cookie')
 
-    // ✅ FormData pour envoyer le fichier
     const formData = new FormData()
     formData.append('username', form.value.username)
     formData.append('email', form.value.email)
@@ -199,9 +198,9 @@ async function register() {
     await api.post('/register', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
-
-    successMessage.value = 'Compte créé avec succès ! Redirection...'
-    setTimeout(() => router.push('/dashboard'), 1500)
+    
+    successMessage.value = 'Compte créé ! Vérifiez votre email.'
+    setTimeout(() => router.push('/verify-email'), 1500)
 
   } catch (e) {
     if (e.response?.status === 422) {

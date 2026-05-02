@@ -3,9 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\OtpMail;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -36,6 +40,21 @@ class AuthController extends Controller
                         : 'Compte banni définitivement. Raison : ' . $suspension->reason
                 ],
             ]);
+        }
+        if (!$user->hasVerifiedEmail()) {
+            DB::table('email_verification_otps')->where('email', $user->email)->delete();
+
+            $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+            DB::table('email_verification_otps')->insert([
+                'email'      => $user->email,
+                'otp'        => Hash::make($otp),
+                'expires_at' => now()->addMinutes(15),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            Mail::to($user->email)->send(new OtpMail($otp));
         }
 
         $request->session()->regenerate();
@@ -85,6 +104,16 @@ class AuthController extends Controller
 
         Auth::login($user);
         $request->session()->regenerate();
+
+        $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        DB::table('email_verification_otps')->insert([
+            'email'      => $user->email,
+            'otp'        => Hash::make($otp),
+            'expires_at' => now()->addMinutes(15),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        Mail::to($user->email)->send(new OtpMail($otp));
 
         return response()->json(['user' => $user], 201);
     }

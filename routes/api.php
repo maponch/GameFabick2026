@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
@@ -16,7 +17,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', function (Request $request) {
         return $request->user();
-    });
+    });    
+    // Vérification email
+    Route::post('/email/send-otp',  [EmailVerificationController::class, 'send']);
+    Route::post('/email/verify',    [EmailVerificationController::class, 'verify']);
+    
 
         // ✅ Edition du profil
     Route::patch('/user/username', [UserController::class, 'updateUsername']);
