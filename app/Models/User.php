@@ -24,6 +24,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'role',
         'profile_photo',
+        'scheduled_deletion_at',
     ];
     public function isAdmin(): bool
     {
@@ -50,6 +51,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'scheduled_deletion_at' => 'datetime',
         ];
     }
     protected $appends = ['photo_profile_url'];
