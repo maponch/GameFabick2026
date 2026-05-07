@@ -44,12 +44,12 @@
       <v-data-table :headers="headers" :items="filteredUsers" :loading="loading" items-per-page="10">
         <!-- Avatar + nom -->
         <template #item.username="{ item }">
-          <div class="d-flex align-center ga-3 py-2">
+          <div class="d-flex align-center ga-3 py-2 cursor-pointer" @click="router.push(`/admin/users/${item.id}`)">
             <v-avatar size="36">
               <v-img :src="item.photo_profile_url" />
             </v-avatar>
             <div>
-              <div>{{ item.username }}</div>
+              <div class="text-primary">{{ item.username }}</div>
               <div v-if="item.is_permanently_banned" class="text-caption text-error">
                 Banni définitivement
               </div>
@@ -103,14 +103,6 @@
                   variant="text" :color="item.is_suspended ? 'success' : 'warning'"
                   :disabled="item.id === currentUserId || item.is_permanently_banned"
                   @click="item.is_suspended ? unsuspend(item) : openSuspendDialog(item)" />
-              </template>
-            </v-tooltip>
-
-            <!-- Supprimer -->
-            <v-tooltip text="Supprimer">
-              <template #activator="{ props }">
-                <v-btn v-bind="props" icon="mdi-delete" size="small" variant="text" color="error"
-                  :disabled="item.id === currentUserId" @click="confirmDelete(item)" />
               </template>
             </v-tooltip>
 
@@ -183,6 +175,9 @@
 import { ref, computed, onMounted } from 'vue'
 import { api } from '../../api'
 import { getUser } from '../../router'
+import { useRouter } from 'vue-router'
+
+const router = useRouter() 
 
 const stats = ref({})
 const users = ref([])

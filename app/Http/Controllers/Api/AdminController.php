@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Mail\AccountDeletionMail;
 use App\Models\Suspension;
 use App\Models\SuspensionHistory;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class AdminController extends Controller
 {
@@ -23,7 +25,8 @@ class AdminController extends Controller
     public function users()
     {
         return response()->json(
-            User::select('id', 'username', 'email', 'role', 'created_at', 'profile_photo')
+            User::withTrashed()
+                ->select('id', 'username', 'email', 'role', 'created_at', 'profile_photo')
                 ->with(['suspensionHistory', 'suspensions' => fn($q) => $q->where('is_active', true)->latest()])
                 ->orderBy('created_at', 'desc')
                 ->get()
@@ -37,6 +40,8 @@ class AdminController extends Controller
                     'is_suspended'     => $u->suspensions->isNotEmpty(),
                     'suspension_count' => $u->suspensionHistory?->suspension_count ?? 0,
                     'is_permanently_banned' => $u->suspensionHistory?->is_permanently_banned ?? false,
+                    'is_pending_deletion'   => $u->trashed(),
+                    'scheduled_deletion_at' => $u->scheduled_deletion_at?->format('d/m/Y'),
                 ])
         );
     }
@@ -119,21 +124,44 @@ class AdminController extends Controller
             return response()->json(['message' => 'Vous ne pouvez pas supprimer votre propre compte.'], 403);
         }
 
-        // Conserve le hash pour les bans permanents
+        $deletionDate = now()->addDays(30)->format('d/m/Y')  ;
+
+        // Conserve le hash si banni
         $emailHash = hash('sha256', strtolower($user->email));
         $history = SuspensionHistory::where('email_hash', $emailHash)->first();
-
         if ($history) {
-            // Dissocie le user_id mais garde le hash
             $history->update(['user_id' => null]);
         }
 
-        if ($user->profile_photo) {
-            \Storage::disk('public')->delete($user->profile_photo);
-        }
+        Mail::to($user->email)->send(new AccountDeletionMail($user->username, $deletionDate));
 
-        $user->delete();
+        $user->scheduleDeletion();
 
-        return response()->json(['message' => 'Utilisateur supprimé.']);
+        return response()->json(['message' => 'Compte supprimé. L\'utilisateur a 30 jours pour annuler.']);
+    }
+    public function show(User $user)
+    {
+        $user->load(['suspensions.admin', 'suspensionHistory']);
+
+        return response()->json([
+            'id'               => $user->id,
+            'username'         => $user->username,
+            'email'            => $user->email,
+            'role'             => $user->role,
+            'created_at'       => $user->created_at,
+            'email_verified_at' => $user->email_verified_at,
+            'photo_profile_url' => $user->photo_profile_url,
+            'is_suspended'     => $user->isSuspended(),
+            'is_permanently_banned' => $user->suspensionHistory?->is_permanently_banned ?? false,
+            'suspension_count' => $user->suspensionHistory?->suspension_count ?? 0,
+            'suspensions'      => $user->suspensions->map(fn($s) => [
+                'id'         => $s->id,
+                'reason'     => $s->reason,
+                'expires_at' => $s->expires_at?->format('d/m/Y à H:i'),
+                'is_active'  => $s->is_active,
+                'created_at' => $s->created_at->format('d/m/Y à H:i'),
+                'admin'      => $s->admin?->username ?? 'Système',
+            ]),
+        ]);
     }
 }

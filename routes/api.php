@@ -18,6 +18,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });    
+    Route::delete('/user', [UserController::class, 'destroy']);
+    Route::post('/user/restore', [UserController::class, 'restore']);
     // Vérification email
     Route::post('/email/send-otp',  [EmailVerificationController::class, 'send']);
     Route::post('/email/verify',    [EmailVerificationController::class, 'verify']);
@@ -42,4 +44,5 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::post('/users/{user}/suspend', [AdminController::class, 'suspend']);
     Route::patch('/users/{user}/unsuspend', [AdminController::class, 'unsuspend']);
     Route::delete('/users/{user}', [AdminController::class, 'destroy']);
+    Route::get('/users/{user}', [AdminController::class, 'show']);
 });

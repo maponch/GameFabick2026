@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Mail\AccountDeletionMail;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
@@ -63,5 +65,62 @@ class UserController extends Controller
         $user->update(['profile_photo' => $path]);
 
         return response()->json(['user' => $user->fresh()]);
+    }
+    public function destroy(Request $request)
+    {
+        $request->validate([
+            'password' => 'required',
+        ]);
+
+        $user = $request->user();
+
+        // Vérifie le mot de passe avant suppression
+        if (!Hash::check($request->password, $user->password)) {
+            return response()->json(['errors' => ['password' => ['Mot de passe incorrect.']]], 422);
+        }
+
+        $deletionDate = now()->addDays(30)->format('d/m/Y');
+
+        $user->scheduleDeletion();
+
+        Mail::to($user->email)->send(new AccountDeletionMail($user->username, $deletionDate));
+
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return response()->json(['message' => 'Compte supprimé. Vous avez 30 jours pour annuler.']);
+    }
+
+    public function restore(Request $request)
+    {
+        // Récupère l'utilisateur soft-deleted via l'email
+        $request->validate([
+            'email'    => 'required|email',
+            'password' => 'required',
+        ]);
+
+        $user = \App\Models\User::withTrashed()
+            ->where('email', $request->email)
+            ->first();
+
+        if (!$user || !$user->trashed()) {
+            return response()->json(['message' => 'Aucun compte supprimé trouvé.'], 404);
+        }
+
+        if (!Hash::check($request->password, $user->password)) {
+            return response()->json(['errors' => ['password' => ['Mot de passe incorrect.']]], 422);
+        }
+
+        if ($user->scheduled_deletion_at && now()->isAfter($user->scheduled_deletion_at)) {
+            return response()->json(['message' => 'Délai de restauration dépassé.'], 403);
+        }
+
+        $user->restoreAccount();
+
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        return response()->json(['message' => 'Compte restauré.', 'user' => $user->fresh()]);
     }
 }

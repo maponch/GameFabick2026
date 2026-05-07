@@ -28,6 +28,11 @@ const routes = [
     component: () => import('../pages/admin/index.vue'),
     meta: { requiresAuth: true, requiresAdmin: true }
   },
+  {
+    path: '/admin/users/:id',
+    component: () => import('../pages/admin/UserProfile.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
   { path: '/:pathMatch(.*)*', redirect: '/' } // 404 → accueil
 ]
 
@@ -67,7 +72,7 @@ router.beforeEach(async (to) => {
   if (!user.email_verified_at && to.path !== '/verify-email') {
     return { path: '/verify-email' }
   }
-  
+
   // Page admin → vérification du rôle
   if (to.meta.requiresAdmin && user.role !== 'admin') return { path: '/dashboard' }
 
