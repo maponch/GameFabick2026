@@ -60,6 +60,17 @@
           <v-chip color="primary" prepend-icon="mdi-shield-crown" size="small">Administrateur</v-chip>
         </template>
 
+        <!-- Suppression de compte -->
+        <v-divider class="my-4" />
+
+        <div class="text-error text-caption font-weight-bold mb-2">
+          ZONE DANGER
+        </div>
+
+        <v-btn block color="error" variant="tonal" prepend-icon="mdi-account-remove" @click="modals.delete = true">
+          Supprimer mon compte
+        </v-btn>
+
       </v-card>
     </div>
 
@@ -74,6 +85,7 @@
     <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000" location="bottom right">
       {{ snackbar.message }}
     </v-snackbar>
+    <ModalDeleteAccount v-model="modals.delete" @deleted="onAccountDeleted" @error="showError" />
 
   </v-container>
 </template>
@@ -84,11 +96,27 @@ import { api } from '../../api'
 import ModalPhoto from '../../components/user/ModalPhoto.vue'
 import ModalUsername from '../../components/user/ModalUsername.vue'
 import ModalPassword from '../../components/user/ModalPassword.vue'
+import ModalDeleteAccount from '../../components/user/ModalDeleteAccount.vue'
+import { clearUser } from '../../router'
+import { useRouter } from 'vue-router'
 
 const user = ref(null)
 const loading = ref(true)
-const modals = ref({ photo: false, username: false, password: false })
 const snackbar = ref({ show: false, message: '', color: 'success' })
+
+const router = useRouter()
+
+const modals = ref({
+  photo: false,
+  username: false,
+  password: false,
+  delete: false,
+})
+
+function onAccountDeleted() {
+  clearUser()
+  router.push('/login')
+}
 
 function showSuccess(message) {
   snackbar.value = { show: true, message, color: 'success' }

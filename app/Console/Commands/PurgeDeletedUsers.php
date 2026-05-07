@@ -14,7 +14,8 @@ class PurgeDeletedUsers extends Command
 
     public function handle(): void
     {
-        $users = User::onlyTrashed()
+        $users = User::withTrashed()
+            ->whereNotNull('scheduled_deletion_at')
             ->where('scheduled_deletion_at', '<=', now())
             ->get();
 

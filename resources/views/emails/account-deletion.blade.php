@@ -25,6 +25,13 @@
     Si vous n'êtes pas à l'origine de cette demande, reconnectez-vous immédiatement
     et contactez notre support.
   </p>
+  <p style="text-align: center; margin: 20px 0;">
+  <a href="{{ config('app.frontend_url') }}/restore-account?email={{ $email ?? '' }}"
+    style="background: #1976D2; color: white; padding: 12px 24px;
+    text-decoration: none; border-radius: 4px; display: inline-block;">
+    Annuler la suppression
+  </a>
+</p>
 
   <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
   <p style="color: #999; font-size: 12px;">© {{ date('Y') }} GameFabrick</p>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\AccountDeletionMail;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
@@ -83,7 +84,7 @@ class UserController extends Controller
 
         $user->scheduleDeletion();
 
-        Mail::to($user->email)->send(new AccountDeletionMail($user->username, $deletionDate));
+        Mail::to($user->email)->send(new AccountDeletionMail($user->username, $deletionDate, $user->email));
 
         Auth::guard('web')->logout();
         $request->session()->invalidate();
@@ -94,15 +95,17 @@ class UserController extends Controller
 
     public function restore(Request $request)
     {
-        // Récupère l'utilisateur soft-deleted via l'email
         $request->validate([
             'email'    => 'required|email',
             'password' => 'required',
         ]);
+        \Log::info('Restore attempt:', ['email_received' => $request->email]);
 
         $user = \App\Models\User::withTrashed()
-            ->where('email', $request->email)
+            ->whereRaw('LOWER(email) = ?', [strtolower($request->email)])
             ->first();
+        \Log::info('User found:', ['user' => $user ? $user->toArray() : 'null', 'trashed' => $user?->trashed()]);
+
 
         if (!$user || !$user->trashed()) {
             return response()->json(['message' => 'Aucun compte supprimé trouvé.'], 404);

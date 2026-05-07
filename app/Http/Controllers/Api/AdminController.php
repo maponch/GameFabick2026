@@ -133,11 +133,11 @@ class AdminController extends Controller
             $history->update(['user_id' => null]);
         }
 
-        Mail::to($user->email)->send(new AccountDeletionMail($user->username, $deletionDate));
+        Mail::to($user->email)->send(new AccountDeletionMail($user->username, $deletionDate, $user->email));
 
-        $user->scheduleDeletion();
+        $user->markForDeletion();
 
-        return response()->json(['message' => 'Compte supprimé. L\'utilisateur a 30 jours pour annuler.']);
+        return response()->json(['message' => 'Suppression programmée. L\'utilisateur a 30 jours pour annuler.']);
     }
     public function show(User $user)
     {

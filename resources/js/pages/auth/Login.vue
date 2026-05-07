@@ -47,6 +47,9 @@
             <v-btn variant="text" color="primary" to="/forgot-password" size="small">
               Mot de passe oublié ?
             </v-btn>
+            <v-btn variant="text" color="primary" to="/restore-account" size="small">
+              Compte récemment supprimé ? Restaurer
+            </v-btn>
           </v-card-actions>
 
         </v-card>

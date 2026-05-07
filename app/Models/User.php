@@ -110,4 +110,10 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->trashed() && $this->scheduled_deletion_at !== null;
     }
+    public function markForDeletion(): void
+    {
+        $this->update([
+            'scheduled_deletion_at' => now()->addDays(30),
+        ]);
+    }
 }

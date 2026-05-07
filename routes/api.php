@@ -19,7 +19,6 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });    
     Route::delete('/user', [UserController::class, 'destroy']);
-    Route::post('/user/restore', [UserController::class, 'restore']);
     // Vérification email
     Route::post('/email/send-otp',  [EmailVerificationController::class, 'send']);
     Route::post('/email/verify',    [EmailVerificationController::class, 'verify']);
@@ -35,6 +34,9 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::post('/forgot-password', [PasswordResetController::class, 'sendOtp']);
 Route::post('/verify-otp', [PasswordResetController::class, 'verifyOtp']);
 Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
+
+//restauration du comppte
+Route::post('/user/restore', [UserController::class, 'restore']);
 
 
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {

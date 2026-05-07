@@ -12,6 +12,7 @@ const routes = [
   { path: '/forgot-password', component: () => import('../pages/auth/ForgotPassword.vue') },
   { path: '/reset-password', component: () => import('../pages/auth/ResetPassword.vue') },
   { path: '/verify-email', component: () => import('../pages/auth/VerifyEmail.vue') },
+  { path: '/restore-account', component: () => import('../pages/auth/RestoreAccount.vue') },
   {
     path: '/dashboard',
     component: Dashboard,
