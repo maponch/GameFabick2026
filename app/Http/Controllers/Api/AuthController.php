@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\RateLimiter;
 
 class AuthController extends Controller
 {
@@ -20,12 +21,25 @@ class AuthController extends Controller
             'email'    => 'required|email',
             'password' => 'required',
         ]);
+        $throttleKey = 'login.' . strtolower($credentials['email']);
+
+        if (RateLimiter::tooManyAttempts($throttleKey, 10)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+            $minutes = ceil($seconds / 60);
+
+            throw ValidationException::withMessages([
+                'email' => ["Trop de tentatives. Réessayez dans {$minutes} minute(s)."],
+            ]);
+        }
 
         if (!Auth::attempt($credentials)) {
+            RateLimiter::hit($throttleKey, 300); // ✅ 300s = 5 min de blocage
             throw ValidationException::withMessages([
                 'email' => ['Identifiants invalides.'],
             ]);
         }
+        
+        RateLimiter::clear($throttleKey);
 
         $user = Auth::user();
 

@@ -10,21 +10,21 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('throttle:5,1')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
-});
-
+    });
+Route::middleware('throttle:20,1')->post('/login', [AuthController::class, 'login']);
+    
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', function (Request $request) {
         return $request->user();
     });    
     Route::delete('/user', [UserController::class, 'destroy']);
-    // Vérification email
+
     Route::post('/email/send-otp',  [EmailVerificationController::class, 'send']);
     Route::post('/email/verify',    [EmailVerificationController::class, 'verify']);
     
 
-        // ✅ Edition du profil
+        // Edition du profil
     Route::patch('/user/username', [UserController::class, 'updateUsername']);
     Route::patch('/user/password', [UserController::class, 'updatePassword']);
     Route::post('/user/photo', [UserController::class, 'updatePhoto']);
