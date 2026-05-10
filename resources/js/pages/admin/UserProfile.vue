@@ -11,6 +11,12 @@
 
     <div v-else-if="user">
 
+      <v-alert v-if="user.is_pending_deletion" type="warning" variant="tonal" class="mb-4"
+        prepend-icon="mdi-delete-clock">
+        Ce compte est en attente de suppression définitive le <strong>{{ user.scheduled_deletion_at }}</strong>.
+        Les actions sur ce compte sont désactivées.
+      </v-alert>
+
       <v-row>
 
         <!-- INFOS UTILISATEUR -->
@@ -24,19 +30,22 @@
             <div class="text-h6">{{ user.username }}</div>
             <div class="text-body-2 text-medium-emphasis mb-3">{{ user.email }}</div>
 
-            <div class="d-flex justify-center ga-2 mb-4">
+            <div class="d-flex justify-center ga-2 mb-4 flex-wrap">
               <v-chip :color="user.role === 'admin' ? 'primary' : 'default'" size="small"
                 :prepend-icon="user.role === 'admin' ? 'mdi-shield-crown' : 'mdi-account'">
                 {{ user.role === 'admin' ? 'Admin' : 'Utilisateur' }}
               </v-chip>
 
+              <v-chip v-if="user.is_pending_deletion" color="deep-orange" size="small" prepend-icon="mdi-delete-clock">
+                Suppression en cours
+              </v-chip>
               <v-chip v-if="user.is_permanently_banned" color="error" size="small" prepend-icon="mdi-cancel">
                 Banni
               </v-chip>
               <v-chip v-else-if="user.is_suspended" color="warning" size="small" prepend-icon="mdi-account-lock">
                 Suspendu
               </v-chip>
-              <v-chip v-else color="success" size="small" prepend-icon="mdi-account-check">
+              <v-chip v-else-if="!user.is_pending_deletion" color="success" size="small" prepend-icon="mdi-account-check">
                 Actif
               </v-chip>
             </div>
@@ -58,6 +67,10 @@
                 <span class="text-caption text-medium-emphasis">Suspensions</span>
                 <span class="text-body-2">{{ user.suspension_count }} / 3</span>
               </div>
+              <div v-if="user.is_pending_deletion" class="d-flex justify-space-between mt-2">
+                <span class="text-caption text-medium-emphasis">Suppression définitive</span>
+                <span class="text-body-2 text-deep-orange">{{ user.scheduled_deletion_at }}</span>
+              </div>
             </div>
 
           </v-card>
@@ -69,7 +82,7 @@
             <!-- Promouvoir / rétrograder -->
             <v-btn block class="mb-2" :color="user.role === 'admin' ? 'warning' : 'primary'" variant="tonal"
               :prepend-icon="user.role === 'admin' ? 'mdi-shield-off' : 'mdi-shield-crown'"
-              :disabled="user.id === currentUserId" @click="toggleRole">
+              :disabled="user.id === currentUserId || user.is_pending_deletion" @click="toggleRole">
               {{ user.role === 'admin' ? 'Retirer admin' : 'Promouvoir admin' }}
             </v-btn>
 
@@ -77,13 +90,14 @@
             <v-btn v-if="!user.is_permanently_banned" block class="mb-2"
               :color="user.is_suspended ? 'success' : 'warning'" variant="tonal"
               :prepend-icon="user.is_suspended ? 'mdi-account-check' : 'mdi-account-lock'"
-              :disabled="user.id === currentUserId" @click="user.is_suspended ? unsuspend() : suspendDialog = true">
+              :disabled="user.id === currentUserId || user.is_pending_deletion"
+              @click="user.is_suspended ? unsuspend() : suspendDialog = true">
               {{ user.is_suspended ? 'Lever la suspension' : 'Suspendre' }}
             </v-btn>
 
             <!-- Supprimer -->
-            <v-btn block color="error" variant="tonal" prepend-icon="mdi-delete" :disabled="user.id === currentUserId"
-              @click="deleteDialog = true">
+            <v-btn block color="error" variant="tonal" prepend-icon="mdi-delete"
+              :disabled="user.id === currentUserId || user.is_pending_deletion" @click="deleteDialog = true">
               Supprimer le compte
             </v-btn>
           </v-card>

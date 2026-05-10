@@ -19,9 +19,10 @@ class UserSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'admin@gmail.com'],
             [
-                'username' => 'admin',
-                'password' => 'Admin123!',
-                'role' => 'admin',
+                'username'          => 'admin',
+                'password'          => 'Admin123!',
+                'role'              => 'admin',
+                'email_verified_at' => now(),
             ]
         );
 
@@ -29,9 +30,10 @@ class UserSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'user@gmail.com'],
             [
-                'username' => 'user',
-                'password' => 'User123!',
-                'role' => 'user',
+                'username'          => 'user',
+                'password'          => 'User123!',
+                'role'              => 'user',
+                'email_verified_at' => now(),
             ]
         );
     }

@@ -77,12 +77,18 @@ class User extends Authenticatable implements MustVerifyEmail
     // Retourne la suspension active si elle existe
     public function activeSuspension(): ?Suspension
     {
-        return $this->suspensions()
+        $suspension = $this->suspensions()
             ->where('is_active', true)
             ->latest()
-            ->first()
-            ?->tap(fn($s) => $s->checkExpiry()) // vérifie l'expiration au passage
-            ?? null;
+            ->first();
+
+        if (!$suspension) {
+            return null;
+        }
+
+        $suspension->checkExpiry();
+
+        return $suspension->is_active ? $suspension : null;
     }
 
     public function isSuspended(): bool

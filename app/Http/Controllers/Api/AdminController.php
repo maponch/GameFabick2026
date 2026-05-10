@@ -139,8 +139,9 @@ class AdminController extends Controller
 
         return response()->json(['message' => 'Suppression programmée. L\'utilisateur a 30 jours pour annuler.']);
     }
-    public function show(User $user)
+    public function show($id)
     {
+        $user = User::withTrashed()->findOrFail($id);
         $user->load(['suspensions.admin', 'suspensionHistory']);
 
         return response()->json([
@@ -154,6 +155,8 @@ class AdminController extends Controller
             'is_suspended'     => $user->isSuspended(),
             'is_permanently_banned' => $user->suspensionHistory?->is_permanently_banned ?? false,
             'suspension_count' => $user->suspensionHistory?->suspension_count ?? 0,
+            'is_pending_deletion'   => $user->isPendingDeletion(),
+            'scheduled_deletion_at' => $user->scheduled_deletion_at?->format('d/m/Y'),
             'suspensions'      => $user->suspensions->map(fn($s) => [
                 'id'         => $s->id,
                 'reason'     => $s->reason,

@@ -44,13 +44,16 @@
       <v-data-table :headers="headers" :items="filteredUsers" :loading="loading" items-per-page="10">
         <!-- Avatar + nom -->
         <template #item.username="{ item }">
-          <div class="d-flex align-center ga-3 py-2 cursor-pointer" @click="router.push(`/admin/users/${item.id}`)">
+          <div class="d-flex align-center ga-3 py-2">
             <v-avatar size="36">
               <v-img :src="item.photo_profile_url" />
             </v-avatar>
             <div>
-              <div class="text-primary">{{ item.username }}</div>
-              <div v-if="item.is_permanently_banned" class="text-caption text-error">
+              <div>{{ item.username }}</div>
+              <div v-if="item.is_pending_deletion" class="text-caption text-deep-orange">
+                Suppression le {{ item.scheduled_deletion_at }}
+              </div>
+              <div v-else-if="item.is_permanently_banned" class="text-caption text-error">
                 Banni définitivement
               </div>
             </div>
@@ -87,12 +90,20 @@
         <template #item.actions="{ item }">
           <div class="d-flex ga-1">
 
+            <!-- Voir le profil -->
+            <v-tooltip text="Voir le profil">
+              <template #activator="{ props }">
+                <v-btn v-bind="props" icon="mdi-account-eye" size="small" variant="text" color="default"
+                  @click.stop="router.push(`/admin/users/${item.id}`)" />
+              </template>
+            </v-tooltip>
+
             <!-- Promouvoir / rétrograder -->
             <v-tooltip :text="item.role === 'admin' ? 'Retirer admin' : 'Promouvoir admin'">
               <template #activator="{ props }">
                 <v-btn v-bind="props" :icon="item.role === 'admin' ? 'mdi-shield-off' : 'mdi-shield-crown'" size="small"
                   variant="text" :color="item.role === 'admin' ? 'warning' : 'primary'"
-                  :disabled="item.id === currentUserId" @click="toggleRole(item)" />
+                  :disabled="item.id === currentUserId || item.is_pending_deletion" @click.stop="toggleRole(item)" />
               </template>
             </v-tooltip>
 
@@ -101,8 +112,8 @@
               <template #activator="{ props }">
                 <v-btn v-bind="props" :icon="item.is_suspended ? 'mdi-account-check' : 'mdi-account-lock'" size="small"
                   variant="text" :color="item.is_suspended ? 'success' : 'warning'"
-                  :disabled="item.id === currentUserId || item.is_permanently_banned"
-                  @click="item.is_suspended ? unsuspend(item) : openSuspendDialog(item)" />
+                  :disabled="item.id === currentUserId || item.is_permanently_banned || item.is_pending_deletion"
+                  @click.stop="item.is_suspended ? unsuspend(item) : openSuspendDialog(item)" />
               </template>
             </v-tooltip>
 
