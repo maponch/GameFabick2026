@@ -50,12 +50,6 @@
             </v-avatar>
             <div>
               <div>{{ item.username }}</div>
-              <div v-if="item.is_pending_deletion" class="text-caption text-deep-orange">
-                Suppression le {{ item.scheduled_deletion_at }}
-              </div>
-              <div v-else-if="item.is_permanently_banned" class="text-caption text-error">
-                Banni définitivement
-              </div>
             </div>
           </div>
         </template>
@@ -70,7 +64,10 @@
 
         <!-- Statut -->
         <template #item.status="{ item }">
-          <v-chip v-if="item.is_permanently_banned" color="error" size="small" prepend-icon="mdi-cancel">
+          <v-chip v-if="item.is_pending_deletion" color="deep-orange" size="small" prepend-icon="mdi-delete-clock">
+            Suppression en cours
+          </v-chip>
+          <v-chip v-else-if="item.is_permanently_banned" color="error" size="small" prepend-icon="mdi-cancel">
             Banni
           </v-chip>
           <v-chip v-else-if="item.is_suspended" color="warning" size="small" prepend-icon="mdi-account-lock">

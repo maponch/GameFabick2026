@@ -4,14 +4,15 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Mail\OtpMail;
+use App\Mail\TwoFactorMail;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -28,17 +29,17 @@ class AuthController extends Controller
             $minutes = ceil($seconds / 60);
 
             throw ValidationException::withMessages([
-                'email' => ["Trop de tentatives. Réessayez dans {$minutes} minute(s)."],
+                'password' => ["Trop de tentatives. Réessayez dans {$minutes} minute(s)."],
             ]);
         }
 
         if (!Auth::attempt($credentials)) {
             RateLimiter::hit($throttleKey, 300); // ✅ 300s = 5 min de blocage
             throw ValidationException::withMessages([
-                'email' => ['Identifiants invalides.'],
+                'password' => ['mot de passe ou email invalide.'],
             ]);
         }
-        
+
         RateLimiter::clear($throttleKey);
 
         $user = Auth::user();
@@ -67,8 +68,31 @@ class AuthController extends Controller
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
-
             Mail::to($user->email)->send(new OtpMail($otp));
+        }
+        // Si 2FA activé, demande la vérification
+        if ($user->two_factor_enabled) {
+            Auth::guard('web')->logout();
+
+            // Si méthode email, envoie automatiquement le code
+            if ($user->two_factor_method === 'email') {
+                DB::table('email_verification_otps')->where('email', $user->email)->delete();
+                $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+                DB::table('email_verification_otps')->insert([
+                    'email'      => $user->email,
+                    'otp'        => Hash::make($otp),
+                    'expires_at' => now()->addMinutes(10),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                Mail::to($user->email)->send(new TwoFactorMail($otp));
+            }
+
+            return response()->json([
+                'two_factor_required' => true,
+                'method'              => $user->two_factor_method,
+                'email'               => $user->email,
+            ]);
         }
 
         $request->session()->regenerate();

@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\Api\PasswordResetController;
+use App\Http\Controllers\Api\TwoFactorController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -28,7 +29,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/user/username', [UserController::class, 'updateUsername']);
     Route::patch('/user/password', [UserController::class, 'updatePassword']);
     Route::post('/user/photo', [UserController::class, 'updatePhoto']);
+
+    Route::post('/2fa/generate-totp', [TwoFactorController::class, 'generateTotp']);
+    Route::post('/2fa/send-email',    [TwoFactorController::class, 'sendEmailOtp']);
+    Route::post('/2fa/enable',        [TwoFactorController::class, 'enable']);
+    Route::post('/2fa/disable',       [TwoFactorController::class, 'disable']);
 });
+
+Route::post('/2fa/verify', [TwoFactorController::class, 'verify']);
 
 // Mot de passe oublié (public)
 Route::post('/forgot-password', [PasswordResetController::class, 'sendOtp']);
@@ -47,4 +55,7 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::patch('/users/{user}/unsuspend', [AdminController::class, 'unsuspend']);
     Route::delete('/users/{user}', [AdminController::class, 'destroy']);
     Route::get('/users/{user}', [AdminController::class, 'show']);
+    Route::post('/users/{user}/regenerate-2fa-codes', [AdminController::class, 'regenerateRecoveryCodes']);
+    Route::post('/users/{user}/disable-2fa',          [AdminController::class, 'disableTwoFactor']);
+
 });

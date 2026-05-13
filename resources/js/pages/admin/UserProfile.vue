@@ -39,13 +39,13 @@
               <v-chip v-if="user.is_pending_deletion" color="deep-orange" size="small" prepend-icon="mdi-delete-clock">
                 Suppression en cours
               </v-chip>
-              <v-chip v-if="user.is_permanently_banned" color="error" size="small" prepend-icon="mdi-cancel">
+              <v-chip v-else-if="user.is_permanently_banned" color="error" size="small" prepend-icon="mdi-cancel">
                 Banni
               </v-chip>
               <v-chip v-else-if="user.is_suspended" color="warning" size="small" prepend-icon="mdi-account-lock">
                 Suspendu
               </v-chip>
-              <v-chip v-else-if="!user.is_pending_deletion" color="success" size="small" prepend-icon="mdi-account-check">
+              <v-chip v-else color="success" size="small" prepend-icon="mdi-account-check">
                 Actif
               </v-chip>
             </div>
@@ -94,6 +94,49 @@
               @click="user.is_suspended ? unsuspend() : suspendDialog = true">
               {{ user.is_suspended ? 'Lever la suspension' : 'Suspendre' }}
             </v-btn>
+            
+            <!-- 2FA -->
+            <v-divider class="my-3" />
+            <div class="text-caption text-medium-emphasis mb-2">DOUBLE AUTHENTIFICATION</div>
+
+            <div v-if="user.two_factor_enabled">
+              <v-chip color="success" size="small" prepend-icon="mdi-shield-check" class="mb-2">
+                Activée ({{ user.two_factor_method === 'totp' ? 'App' : 'Email' }})
+              </v-chip>
+
+              <v-btn block color="warning" variant="tonal" prepend-icon="mdi-key-variant" class="mb-2"
+                :disabled="user.is_pending_deletion" @click="regenerateDialog = true">
+                Régénérer les codes
+              </v-btn>
+
+              <v-btn block color="error" variant="tonal" prepend-icon="mdi-shield-off"
+                :disabled="user.is_pending_deletion" @click="disable2faAdminDialog = true">
+                Désactiver le 2FA
+              </v-btn>
+            </div>
+            <div v-else>
+              <v-chip color="default" size="small">Non activée</v-chip>
+            </div>
+            <!-- DIALOG RÉGÉNÉRATION CODES -->
+            <v-dialog v-model="regenerateDialog" max-width="500">
+              <v-card class="pa-4">
+                <v-card-title>Régénérer les codes de secours</v-card-title>
+
+                <v-card-text>
+                  <v-alert type="info" variant="tonal" density="compact">
+                    Les nouveaux codes seront envoyés directement par email à l'utilisateur.
+                    Les anciens codes seront immédiatement invalidés.
+                  </v-alert>
+                </v-card-text>
+
+                <v-card-actions class="justify-end">
+                  <v-btn variant="text" @click="regenerateDialog = false">Annuler</v-btn>
+                  <v-btn color="warning" :loading="actionLoading" @click="regenerateCodes">
+                    Régénérer et envoyer
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
 
             <!-- Supprimer -->
             <v-btn block color="error" variant="tonal" prepend-icon="mdi-delete"
@@ -169,6 +212,26 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog v-model="disable2faAdminDialog" max-width="450">
+      <v-card class="pa-4">
+        <v-card-title>Désactiver le 2FA</v-card-title>
+        <v-card-text>
+          <v-alert type="warning" variant="tonal" density="compact" class="mb-3">
+            L'utilisateur sera notifié par email de cette action.
+          </v-alert>
+
+          <v-textarea v-model="disable2faReason" label="Raison (visible par l'utilisateur)" variant="outlined" rows="3"
+            :error-messages="disable2faErrors.reason"
+            placeholder="Ex: Demande utilisateur suite à perte des codes de secours, identité vérifiée par email du 07/05/2026" />
+        </v-card-text>
+        <v-card-actions class="justify-end">
+          <v-btn variant="text" @click="disable2faAdminDialog = false">Annuler</v-btn>
+          <v-btn color="error" :loading="actionLoading" @click="disable2faAdmin">
+            Désactiver et notifier
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <!-- DIALOG SUPPRESSION -->
     <v-dialog v-model="deleteDialog" max-width="400">
@@ -215,6 +278,11 @@ const suspendDialog = ref(false)
 const suspendForm = ref({ reason: '', duration: '1_day' })
 const suspendErrors = ref({})
 
+const disable2faAdminDialog = ref(false)
+const regenerateDialog = ref(false)
+const disable2faReason = ref('')
+const disable2faErrors = ref({})
+
 const durationOptions = [
   { label: '1 jour', value: '1_day' },
   { label: '7 jours', value: '7_days' },
@@ -233,6 +301,7 @@ async function loadUser() {
   loading.value = true
   try {
     const { data } = await api.get(`/admin/users/${route.params.id}`)
+    console.log('User loaded:', data) 
     user.value = data
   } catch {
     showError('Erreur lors du chargement.')
@@ -281,6 +350,42 @@ async function unsuspend() {
     showSuccess('Suspension levée.')
   } catch (e) {
     showError(e.response?.data?.message ?? 'Erreur.')
+  }
+}
+async function disable2faAdmin() {
+  disable2faErrors.value = {}
+  if (!disable2faReason.value.trim()) {
+    disable2faErrors.value.reason = ['La raison est requise.']
+    return
+  }
+
+  actionLoading.value = true
+  try {
+    await api.post(`/admin/users/${user.value.id}/disable-2fa`, {
+      reason: disable2faReason.value
+    })
+    user.value.two_factor_enabled = false
+    user.value.two_factor_method = null
+    disable2faAdminDialog.value = false
+    disable2faReason.value = ''
+    showSuccess('2FA désactivée et utilisateur notifié.')
+  } catch (e) {
+    if (e.response?.status === 422) disable2faErrors.value = e.response.data.errors ?? {}
+    else showError('Erreur.')
+  } finally {
+    actionLoading.value = false
+  }
+}
+async function regenerateCodes() {
+  actionLoading.value = true
+  try {
+    await api.post(`/admin/users/${user.value.id}/regenerate-2fa-codes`)
+    regenerateDialog.value = false
+    showSuccess('Codes régénérés et envoyés par email.')
+  } catch (e) {
+    showError(e.response?.data?.message ?? 'Erreur.')
+  } finally {
+    actionLoading.value = false
   }
 }
 

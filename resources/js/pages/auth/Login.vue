@@ -100,14 +100,6 @@ async function login() {
 
   form.value.email = form.value.email.trim()
 
-  console.log('Données envoyées:', {      
-    email: form.value.email,
-    password: form.value.password,
-    emailLength: form.value.email.length,
-    passwordLength: form.value.password.length,
-  })
-
-  // Validation côté client
   errors.value = validateForm()
   if (Object.keys(errors.value).length > 0) return
 
@@ -117,7 +109,16 @@ async function login() {
     await api.get('/sanctum/csrf-cookie')
     const { data } = await api.post('/login', form.value)
 
-    // Redirige selon le rôle
+    // ✅ Si 2FA requis, redirige vers la page de vérification
+    if (data.two_factor_required) {
+      router.push({
+        path: '/2fa-verify',
+        query: { email: form.value.email, method: data.method }
+      })
+      return
+    }
+
+    // Connexion normale
     if (data.user?.role === 'admin') {
       router.push('/admin')
     } else {
@@ -126,18 +127,15 @@ async function login() {
 
   } catch (e) {
     if (e.response?.status === 422) {
-      // Erreurs de validation Laravel (identifiants invalides)
-      console.log('Erreurs Laravel:', e.response.data)
       errors.value = e.response.data.errors ?? {}
     } else if (e.response?.status === 429) {
-      // Trop de tentatives (throttle)
-      errorMessage.value = 'Trop de tentatives. Veuillez patienter avant de réessayer.'
+      errorMessage.value = 'Trop de tentatives. Veuillez patienter.'
     } else {
       errorMessage.value = 'Une erreur est survenue. Veuillez réessayer.'
     }
   } finally {
     loading.value = false
-    form.value.password = '' // ✅ vide le mot de passe après chaque tentative
+    form.value.password = ''
   }
 }
 </script>

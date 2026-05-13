@@ -36,5 +36,16 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
+        for ($i = 1; $i <= 5; $i++) {
+            User::updateOrCreate(
+                ['email' => "test{$i}@gmail.com"],
+                [
+                    'username'          => "test{$i}",
+                    'password'          => 'Test1234!',
+                    'role'              => 'user',
+                    'email_verified_at' => now(),
+                ]
+            );
+        }
     }
 }

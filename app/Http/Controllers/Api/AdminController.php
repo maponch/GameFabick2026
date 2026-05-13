@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Mail\AccountDeletionMail;
+use App\Mail\RecoveryCodesMail;
+use App\Mail\TwoFactorDisabledMail;
 use App\Models\Suspension;
 use App\Models\SuspensionHistory;
 use App\Models\User;
@@ -26,7 +28,7 @@ class AdminController extends Controller
     {
         return response()->json(
             User::withTrashed()
-                ->select('id', 'username', 'email', 'role', 'created_at', 'profile_photo')
+                ->select('id', 'username', 'email', 'role', 'created_at', 'profile_photo', 'scheduled_deletion_at', 'deleted_at')
                 ->with(['suspensionHistory', 'suspensions' => fn($q) => $q->where('is_active', true)->latest()])
                 ->orderBy('created_at', 'desc')
                 ->get()
@@ -40,7 +42,7 @@ class AdminController extends Controller
                     'is_suspended'     => $u->suspensions->isNotEmpty(),
                     'suspension_count' => $u->suspensionHistory?->suspension_count ?? 0,
                     'is_permanently_banned' => $u->suspensionHistory?->is_permanently_banned ?? false,
-                    'is_pending_deletion'   => $u->trashed(),
+                    'is_pending_deletion'   => !is_null($u->scheduled_deletion_at),
                     'scheduled_deletion_at' => $u->scheduled_deletion_at?->format('d/m/Y'),
                 ])
         );
@@ -155,7 +157,7 @@ class AdminController extends Controller
             'is_suspended'     => $user->isSuspended(),
             'is_permanently_banned' => $user->suspensionHistory?->is_permanently_banned ?? false,
             'suspension_count' => $user->suspensionHistory?->suspension_count ?? 0,
-            'is_pending_deletion'   => $user->isPendingDeletion(),
+            'is_pending_deletion'   => !is_null($user->scheduled_deletion_at),
             'scheduled_deletion_at' => $user->scheduled_deletion_at?->format('d/m/Y'),
             'suspensions'      => $user->suspensions->map(fn($s) => [
                 'id'         => $s->id,
@@ -165,6 +167,53 @@ class AdminController extends Controller
                 'created_at' => $s->created_at->format('d/m/Y à H:i'),
                 'admin'      => $s->admin?->username ?? 'Système',
             ]),
+            'two_factor_enabled' => $user->two_factor_enabled,
+            'two_factor_method'  => $user->two_factor_method,
+        ]);
+    }
+    public function disableTwoFactor(Request $request, User $user)
+    {
+        $request->validate([
+            'reason' => 'required|string|max:500',
+        ]);
+
+        $user->update([
+            'two_factor_method'         => null,
+            'two_factor_secret'         => null,
+            'two_factor_enabled'        => false,
+            'two_factor_recovery_codes' => null,
+        ]);
+
+        // Notification à l'utilisateur
+        Mail::to($user->email)->send(new TwoFactorDisabledMail(
+            $user->username,
+            $request->reason,
+            $request->user()->username
+        ));
+
+        return response()->json(['message' => '2FA désactivée et utilisateur notifié.']);
+    }
+    public function regenerateRecoveryCodes(Request $request, User $user)
+    {
+        if (!$user->two_factor_enabled) {
+            return response()->json(['message' => 'Cet utilisateur n\'a pas activé le 2FA.'], 400);
+        }
+
+        $recoveryCodes = collect(range(1, 8))
+            ->map(fn() => strtoupper(bin2hex(random_bytes(5))))
+            ->toArray();
+
+        $user->update(['two_factor_recovery_codes' => $recoveryCodes]);
+
+        Mail::to($user->email)->send(new RecoveryCodesMail(
+            $user->username,
+            $recoveryCodes,
+            $request->user()->username
+        ));
+
+        return response()->json([
+            'message'        => 'Codes de secours régénéréset envoyés par email à l\'utilisateur.',
+            'recovery_codes' => $recoveryCodes,
         ]);
     }
 }
