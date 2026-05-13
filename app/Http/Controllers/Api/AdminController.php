@@ -135,7 +135,7 @@ class AdminController extends Controller
             $history->update(['user_id' => null]);
         }
 
-        Mail::to($user->email)->send(new AccountDeletionMail($user->username, $deletionDate, $user->email));
+        Mail::to($user->email)->send(new AccountDeletionMail($user->username, $deletionDate, $user->email, 'admin'));
 
         $user->markForDeletion();
 

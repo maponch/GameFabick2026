@@ -16,7 +16,8 @@ class AccountDeletionMail extends Mailable
     public function __construct(
         public string $username,
         public string $deletionDate,
-        public string $email
+        public string $email,
+        public string $initator,
     ) {}
 
     public function envelope(): Envelope
@@ -32,6 +33,7 @@ class AccountDeletionMail extends Mailable
                 'username'     => $this->username,
                 'deletionDate' => $this->deletionDate,
                 'email'        => $this->email,
+                'initiator'    => $this->initator,
             ]
         );
     }

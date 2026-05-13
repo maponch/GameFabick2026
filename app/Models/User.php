@@ -29,6 +29,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'two_factor_secret',
         'two_factor_enabled',
         'two_factor_recovery_codes',
+        'deletion_initiator',
     ];
     public function isAdmin(): bool
     {
@@ -110,6 +111,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $this->update([
             'scheduled_deletion_at' => now()->addDays(30),
+            'deletion_initiator'    => 'self',
         ]);
         $this->delete(); // soft delete
     }
@@ -118,7 +120,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function restoreAccount(): void
     {
         $this->restore();
-        $this->update(['scheduled_deletion_at' => null]);
+        $this->update(['scheduled_deletion_at' => null, 'deletion_initiator' => null]);
     }
 
     public function isPendingDeletion(): bool
@@ -129,6 +131,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $this->update([
             'scheduled_deletion_at' => now()->addDays(30),
+            'deletion_initiator'    => 'admin',
         ]);
     }
 }

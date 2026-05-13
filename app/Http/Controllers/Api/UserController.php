@@ -84,7 +84,7 @@ class UserController extends Controller
 
         $user->scheduleDeletion();
 
-        Mail::to($user->email)->send(new AccountDeletionMail($user->username, $deletionDate, $user->email));
+        Mail::to($user->email)->send(new AccountDeletionMail($user->username, $deletionDate, $user->email, 'self'));
 
         Auth::guard('web')->logout();
         $request->session()->invalidate();
@@ -99,12 +99,10 @@ class UserController extends Controller
             'email'    => 'required|email',
             'password' => 'required',
         ]);
-        \Log::info('Restore attempt:', ['email_received' => $request->email]);
 
         $user = \App\Models\User::withTrashed()
             ->whereRaw('LOWER(email) = ?', [strtolower($request->email)])
             ->first();
-        \Log::info('User found:', ['user' => $user ? $user->toArray() : 'null', 'trashed' => $user?->trashed()]);
 
 
         if (!$user || !$user->trashed()) {
@@ -113,6 +111,12 @@ class UserController extends Controller
 
         if (!Hash::check($request->password, $user->password)) {
             return response()->json(['errors' => ['password' => ['Mot de passe incorrect.']]], 422);
+        }
+
+        if ($user->deletion_initiator === 'admin') {
+            return response()->json([
+                'message' => 'Cette suppression a été effectuée par un administrateur et ne peut être annulée. Contactez le support.'
+            ], 403);
         }
 
         if ($user->scheduled_deletion_at && now()->isAfter($user->scheduled_deletion_at)) {
@@ -125,5 +129,30 @@ class UserController extends Controller
         $request->session()->regenerate();
 
         return response()->json(['message' => 'Compte restauré.', 'user' => $user->fresh()]);
+    }
+    public function cancelDeletion(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user->scheduled_deletion_at) {
+            return response()->json(['message' => 'Aucune suppression en cours.'], 400);
+        }
+
+        // ✅ Bloque si admin a initié
+        if ($user->deletion_initiator === 'admin') {
+            return response()->json([
+                'message' => 'Cette suppression a été initiée par un administrateur.'
+            ], 403);
+        }
+
+        $user->update([
+            'scheduled_deletion_at' => null,
+            'deletion_initiator'    => null,
+        ]);
+
+        return response()->json([
+            'message' => 'Suppression annulée.',
+            'user'    => $user->fresh(),
+        ]);
     }
 }

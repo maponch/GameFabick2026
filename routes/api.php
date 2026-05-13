@@ -20,6 +20,7 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });    
     Route::delete('/user', [UserController::class, 'destroy']);
+    Route::post('/user/cancel-deletion', [UserController::class, 'cancelDeletion']);
 
     Route::post('/email/send-otp',  [EmailVerificationController::class, 'send']);
     Route::post('/email/verify',    [EmailVerificationController::class, 'verify']);
