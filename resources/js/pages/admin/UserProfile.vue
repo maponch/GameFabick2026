@@ -14,7 +14,7 @@
       <v-alert v-if="user.is_pending_deletion" type="warning" variant="tonal" class="mb-4"
         prepend-icon="mdi-delete-clock">
         Ce compte est en attente de suppression définitive le <strong>{{ user.scheduled_deletion_at }}</strong>.
-        Les actions sur ce compte sont désactivées.
+        Seul l'annulation est possible jusqu'à cette date.
       </v-alert>
 
       <v-row>
@@ -109,9 +109,18 @@
                 Régénérer les codes
               </v-btn>
 
-              <v-btn block color="error" variant="tonal" prepend-icon="mdi-shield-off"
+              <v-btn block class="mb-2" color="error" variant="tonal" prepend-icon="mdi-shield-off"
                 :disabled="user.is_pending_deletion" @click="disable2faAdminDialog = true">
                 Désactiver le 2FA
+              </v-btn>
+              <v-btn v-if="!user.is_pending_deletion" block color="error" variant="tonal" prepend-icon="mdi-delete"
+                :disabled="user.id === currentUserId" @click="deleteDialog = true">
+                Supprimer le compte
+              </v-btn>
+
+              <v-btn v-else block color="success" variant="tonal" prepend-icon="mdi-restore"
+                @click="cancelDeletionDialog = true">
+                Annuler la suppression
               </v-btn>
             </div>
             <div v-else>
@@ -138,11 +147,21 @@
               </v-card>
             </v-dialog>
 
-            <!-- Supprimer -->
-            <v-btn block color="error" variant="tonal" prepend-icon="mdi-delete"
-              :disabled="user.id === currentUserId || user.is_pending_deletion" @click="deleteDialog = true">
-              Supprimer le compte
-            </v-btn>
+            <!-- Supprimer -->          
+            <v-dialog v-model="cancelDeletionDialog" max-width="400">
+              <v-card class="pa-4">
+                <v-card-title>Annuler la suppression</v-card-title>
+                <v-card-text>
+                  Le compte sera restauré et l'utilisateur pourra à nouveau se connecter normalement.
+                </v-card-text>
+                <v-card-actions class="justify-end">
+                  <v-btn variant="text" @click="cancelDeletionDialog = false">Annuler</v-btn>
+                  <v-btn color="success" :loading="actionLoading" @click="cancelDeletion">
+                    Confirmer
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
           </v-card>
         </v-col>
 
@@ -283,6 +302,8 @@ const regenerateDialog = ref(false)
 const disable2faReason = ref('')
 const disable2faErrors = ref({})
 
+const cancelDeletionDialog = ref(false)
+
 const durationOptions = [
   { label: '1 jour', value: '1_day' },
   { label: '7 jours', value: '7_days' },
@@ -301,7 +322,6 @@ async function loadUser() {
   loading.value = true
   try {
     const { data } = await api.get(`/admin/users/${route.params.id}`)
-    console.log('User loaded:', data) 
     user.value = data
   } catch {
     showError('Erreur lors du chargement.')
@@ -396,6 +416,21 @@ async function deleteUser() {
     deleteDialog.value = false
     showSuccess('Compte supprimé.')
     setTimeout(() => router.push('/admin'), 1500)
+  } catch (e) {
+    showError(e.response?.data?.message ?? 'Erreur.')
+  } finally {
+    actionLoading.value = false
+  }
+}
+
+async function cancelDeletion() {
+  actionLoading.value = true
+  try {
+    await api.post(`/admin/users/${user.value.id}/cancel-deletion`)
+    user.value.is_pending_deletion = false
+    user.value.scheduled_deletion_at = null
+    cancelDeletionDialog.value = false
+    showSuccess('Suppression annulée.')
   } catch (e) {
     showError(e.response?.data?.message ?? 'Erreur.')
   } finally {

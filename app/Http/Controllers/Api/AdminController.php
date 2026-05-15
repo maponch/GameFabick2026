@@ -137,7 +137,7 @@ class AdminController extends Controller
 
         Mail::to($user->email)->send(new AccountDeletionMail($user->username, $deletionDate, $user->email, 'admin'));
 
-        $user->markForDeletion();
+        $user->scheduleDeletion('admin');
 
         return response()->json(['message' => 'Suppression programmée. L\'utilisateur a 30 jours pour annuler.']);
     }
@@ -215,5 +215,19 @@ class AdminController extends Controller
             'message'        => 'Codes de secours régénéréset envoyés par email à l\'utilisateur.',
             'recovery_codes' => $recoveryCodes,
         ]);
+    }
+    public function cancelDeletion(Request $request, User $user)
+    {
+        if (!$user->scheduled_deletion_at) {
+            return response()->json(['message' => 'Aucune suppression en cours.'], 400);
+        }
+
+        $user->restore(); // si soft deleted
+        $user->update([
+            'scheduled_deletion_at' => null,
+            'deletion_initiator'    => null,
+        ]);
+
+        return response()->json(['message' => 'Suppression annulée.', 'user' => $user->fresh()]);
     }
 }

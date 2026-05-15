@@ -32,6 +32,24 @@ class AuthController extends Controller
                 'password' => ["Trop de tentatives. Réessayez dans {$minutes} minute(s)."],
             ]);
         }
+        $deletedUser = User::withTrashed()
+            ->where('email', $credentials['email'])
+            ->whereNotNull('scheduled_deletion_at')
+            ->first();
+
+        if ($deletedUser && Hash::check($credentials['password'], $deletedUser->password)) {
+            $deletionDate = $deletedUser->scheduled_deletion_at->format('d/m/Y');
+
+            if ($deletedUser->deletion_initiator === 'self') {
+                throw ValidationException::withMessages([
+                    'email' => ["Votre compte est en cours de suppression jusqu'au {$deletionDate}. Vous pouvez le restaurer via le lien reçu par email."],
+                ]);
+            } else {
+                throw ValidationException::withMessages([
+                    'email' => ["Votre compte a été supprimé par un administrateur. Contactez le support pour toute contestation."],
+                ]);
+            }
+        }
 
         if (!Auth::attempt($credentials)) {
             RateLimiter::hit($throttleKey, 300); // ✅ 300s = 5 min de blocage

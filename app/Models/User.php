@@ -96,9 +96,12 @@ class User extends Authenticatable implements MustVerifyEmail
             return null;
         }
 
-        $suspension->checkExpiry();
+        if ($suspension->expires_at && now()->isAfter($suspension->expires_at)) {
+            $suspension->update(['is_active' => false]);
+            return null;
+        }
 
-        return $suspension->is_active ? $suspension : null;
+        return $suspension;
     }
 
     public function isSuspended(): bool
@@ -106,12 +109,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->activeSuspension() !== null;
     }
 
-    // Démarre le processus de suppression
-    public function scheduleDeletion(): void
+    public function scheduleDeletion(string $initiator = 'self'): void
     {
         $this->update([
             'scheduled_deletion_at' => now()->addDays(30),
-            'deletion_initiator'    => 'self',
+            'deletion_initiator'    => $initiator,
         ]);
         $this->delete(); // soft delete
     }
@@ -126,12 +128,5 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isPendingDeletion(): bool
     {
         return $this->trashed() && $this->scheduled_deletion_at !== null;
-    }
-    public function markForDeletion(): void
-    {
-        $this->update([
-            'scheduled_deletion_at' => now()->addDays(30),
-            'deletion_initiator'    => 'admin',
-        ]);
     }
 }

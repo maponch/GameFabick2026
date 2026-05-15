@@ -82,7 +82,7 @@ class UserController extends Controller
 
         $deletionDate = now()->addDays(30)->format('d/m/Y');
 
-        $user->scheduleDeletion();
+        $user->scheduleDeletion('self');
 
         Mail::to($user->email)->send(new AccountDeletionMail($user->username, $deletionDate, $user->email, 'self'));
 
@@ -129,30 +129,5 @@ class UserController extends Controller
         $request->session()->regenerate();
 
         return response()->json(['message' => 'Compte restauré.', 'user' => $user->fresh()]);
-    }
-    public function cancelDeletion(Request $request)
-    {
-        $user = $request->user();
-
-        if (!$user->scheduled_deletion_at) {
-            return response()->json(['message' => 'Aucune suppression en cours.'], 400);
-        }
-
-        // ✅ Bloque si admin a initié
-        if ($user->deletion_initiator === 'admin') {
-            return response()->json([
-                'message' => 'Cette suppression a été initiée par un administrateur.'
-            ], 403);
-        }
-
-        $user->update([
-            'scheduled_deletion_at' => null,
-            'deletion_initiator'    => null,
-        ]);
-
-        return response()->json([
-            'message' => 'Suppression annulée.',
-            'user'    => $user->fresh(),
-        ]);
     }
 }

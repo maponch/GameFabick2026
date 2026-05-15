@@ -20,7 +20,6 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });    
     Route::delete('/user', [UserController::class, 'destroy']);
-    Route::post('/user/cancel-deletion', [UserController::class, 'cancelDeletion']);
 
     Route::post('/email/send-otp',  [EmailVerificationController::class, 'send']);
     Route::post('/email/verify',    [EmailVerificationController::class, 'verify']);
@@ -58,5 +57,7 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::get('/users/{user}', [AdminController::class, 'show']);
     Route::post('/users/{user}/regenerate-2fa-codes', [AdminController::class, 'regenerateRecoveryCodes']);
     Route::post('/users/{user}/disable-2fa',          [AdminController::class, 'disableTwoFactor']);
+    Route::post('/users/{user}/cancel-deletion', [AdminController::class, 'cancelDeletion'])
+    ->withTrashed();
 
 });
