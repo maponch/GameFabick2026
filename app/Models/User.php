@@ -129,4 +129,13 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->trashed() && $this->scheduled_deletion_at !== null;
     }
+    public function projects()
+    {
+        return $this->hasMany(Project::class);
+    }
+
+    public function assets()
+    {
+        return $this->hasMany(Asset::class);
+    }
 }

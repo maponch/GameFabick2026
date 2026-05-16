@@ -35,6 +35,21 @@ const routes = [
     component: () => import('../pages/admin/UserProfile.vue'),
     meta: { requiresAuth: true, requiresAdmin: true }
   },
+  {
+    path: '/games',
+    component: () => import('../pages/games/index.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/games/:slug',
+    component: () => import('../pages/games/show.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/projects/:id',
+    component: () => import('../pages/projects/show.vue'),
+    meta: { requiresAuth: true }
+  },
   { path: '/:pathMatch(.*)*', redirect: '/' } // 404 → accueil
 ]
 

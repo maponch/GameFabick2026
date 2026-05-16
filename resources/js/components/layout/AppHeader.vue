@@ -1,7 +1,9 @@
 <template>
 
   <v-app-bar color="primary" dark>
-    <v-toolbar-title>GameFabrick 🎲</v-toolbar-title>
+    <v-btn to="/" variant="text">
+      GameFabrick 🎲
+    </v-btn>
 
     <v-spacer />
 
@@ -14,6 +16,7 @@
     <!-- DESKTOP : SI CONNECTÉ -->
     <template v-if="user && mdAndUp">
       <v-btn variant="text" to="/dashboard">Dashboard</v-btn>
+      <v-btn variant="text" to="/games">Jeux</v-btn>
       <v-btn variant="text" :to="{ name: 'profile' }">Profil</v-btn>
       <v-btn v-if="user.role === 'admin'" variant="text" to="/admin">Admin</v-btn>
       <v-btn variant="text" :loading="logoutLoading" @click="logout">Logout</v-btn>
@@ -42,6 +45,7 @@
     <!-- Connecté -->
     <template v-else>
       <v-list-item prepend-icon="mdi-view-dashboard" title="Dashboard" to="/dashboard" @click="drawer = false" />
+      <v-list-item prepend-icon="mdi-cards" title="Jeux" to="/games" @click="drawer = false" />
       <v-list-item prepend-icon="mdi-account" title="Profil" :to="{ name: 'profile' }" @click="drawer = false" />
       <v-list-item v-if="user.role === 'admin'" prepend-icon="mdi-shield-crown" title="Admin" to="/admin"
         @click="drawer = false" />

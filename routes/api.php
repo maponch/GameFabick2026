@@ -3,6 +3,8 @@
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\EmailVerificationController;
+use App\Http\Controllers\Api\Game\GameTemplateController;
+use App\Http\Controllers\Api\Game\ProjectController;
 use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\TwoFactorController;
 use App\Http\Controllers\Api\UserController;
@@ -34,6 +36,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/2fa/send-email',    [TwoFactorController::class, 'sendEmailOtp']);
     Route::post('/2fa/enable',        [TwoFactorController::class, 'enable']);
     Route::post('/2fa/disable',       [TwoFactorController::class, 'disable']);
+    
+    Route::get('/templates', [GameTemplateController::class, 'index']);
+    Route::get('/templates/{slug}', [GameTemplateController::class, 'show']);
+
+    Route::get('/projects',                [ProjectController::class, 'index']);
+    Route::post('/projects',               [ProjectController::class, 'store']);
+    Route::get('/projects/{project}',      [ProjectController::class, 'show']);
+    Route::delete('/projects/{project}',   [ProjectController::class, 'destroy']);
 });
 
 Route::post('/2fa/verify', [TwoFactorController::class, 'verify']);
