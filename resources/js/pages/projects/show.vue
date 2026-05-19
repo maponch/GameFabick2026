@@ -38,7 +38,7 @@
         <!-- ONGLET CARTES -->
         <v-window-item value="cards">
 
-          <!-- Mode impression : affiche les cartes -->
+          <!-- Mode impression -->
           <div v-if="project.mode === 'printable'">
             <v-row>
               <v-col v-for="object in project.objects" :key="object.id" cols="6" sm="4" md="3">
@@ -55,7 +55,7 @@
             </v-row>
           </div>
 
-          <!-- Mode jeu existant : affiche le pense-bête -->
+          <!-- Mode jeu existant -->
           <div v-else>
             <v-card class="pa-6">
               <h2 class="text-h6 mb-4">Correspondance des cartes</h2>
@@ -104,14 +104,20 @@
       <v-card class="pa-4 mt-6">
         <h3 class="text-h6 mb-3">Actions</h3>
         <div class="d-flex flex-wrap ga-2">
-          <v-btn color="primary" variant="tonal" prepend-icon="mdi-printer" disabled>
-            Imprimer en PDF (à venir)
+          <v-btn color="primary" variant="tonal" prepend-icon="mdi-printer" :loading="generatingPdf"
+            @click="generatePdf">
+            Télécharger le PDF
           </v-btn>
           <v-btn color="error" variant="tonal" prepend-icon="mdi-delete" @click="deleteDialog = true">
             Supprimer
           </v-btn>
         </div>
       </v-card>
+
+      <div style="position: fixed; left: -9999px; top: 0;">
+        <PrintableCards v-if="project.mode === 'printable'" ref="printableCardsRef" :project="project" />
+        <PrintableCheatsheet v-if="project.mode === 'existing_deck'" ref="printableCheatsheetRef" :project="project" />
+      </div>
 
     </div>
 
@@ -144,6 +150,9 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { api } from '../../api'
+import html2pdf from 'html2pdf.js'
+import PrintableCards from '../../components/projects/PrintableCards.vue'
+import PrintableCheatsheet from '../../components/projects/PrintableCheatsheet.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -153,7 +162,11 @@ const loading = ref(true)
 const tab = ref('cards')
 const deleteDialog = ref(false)
 const deleting = ref(false)
+const generatingPdf = ref(false)
 const snackbar = ref({ show: false, message: '', color: 'success' })
+
+const printableCardsRef = ref(null)
+const printableCheatsheetRef = ref(null)
 
 async function loadProject() {
   try {
@@ -177,6 +190,35 @@ async function deleteProject() {
   } finally {
     deleting.value = false
     deleteDialog.value = false
+  }
+}
+
+async function generatePdf() {
+  generatingPdf.value = true
+  try {
+    const element = project.value.mode === 'printable'
+      ? printableCardsRef.value.printArea
+      : printableCheatsheetRef.value.printArea
+
+    const options = {
+      margin: 0,
+      filename: `${project.value.title.replace(/[^a-z0-9]/gi, '_')}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: {
+        mode: ['css'],        // ← enlever 'legacy' qui cause des pages blanches
+        after: '.page'        // ← cible explicite
+      }
+    }
+
+    await html2pdf().set(options).from(element).save()
+    snackbar.value = { show: true, message: 'PDF généré.', color: 'success' }
+  } catch (e) {
+    console.error(e)
+    snackbar.value = { show: true, message: 'Erreur lors de la génération.', color: 'error' }
+  } finally {
+    generatingPdf.value = false
   }
 }
 
