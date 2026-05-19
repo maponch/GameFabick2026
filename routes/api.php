@@ -44,6 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/projects',               [ProjectController::class, 'store']);
     Route::get('/projects/{project}',      [ProjectController::class, 'show']);
     Route::delete('/projects/{project}',   [ProjectController::class, 'destroy']);
+    Route::post('/projects/find-similar', [ProjectController::class, 'findSimilar']);
 });
 
 Route::post('/2fa/verify', [TwoFactorController::class, 'verify']);

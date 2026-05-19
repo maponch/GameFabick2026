@@ -117,6 +117,30 @@
       </v-row>
 
     </div>
+    <v-dialog v-model="similarDialog" max-width="500">
+      <v-card class="pa-4">
+        <v-card-title>Projets similaires existants</v-card-title>
+
+        <v-card-text>
+          <p class="mb-3">
+            Tu as déjà {{ similarProjects.length }} projet(s) avec ce jeu et ce mode.
+            Veux-tu reprendre l'un d'eux ou en créer un nouveau ?
+          </p>
+
+          <v-list>
+            <v-list-item v-for="p in similarProjects" :key="p.id" :title="p.title" :subtitle="formatDate(p.created_at)"
+              prepend-icon="mdi-cards-playing" @click="goToProject(p.id)" />
+          </v-list>
+        </v-card-text>
+
+        <v-card-actions class="justify-end">
+          <v-btn variant="text" @click="similarDialog = false">Annuler</v-btn>
+          <v-btn color="primary" :loading="generating" @click="createProject">
+            Créer un nouveau projet
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <!-- Snackbar -->
     <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000" location="bottom right">
@@ -139,6 +163,9 @@ const loading = ref(true)
 const generating = ref(false)
 const errors = ref({})
 const snackbar = ref({ show: false, message: '', color: 'success' })
+
+const similarProjects = ref([])
+const similarDialog = ref(false)
 
 const config = ref({
   title: '',
@@ -171,6 +198,27 @@ async function generateGame() {
     return
   }
 
+  // ✅ Vérifie d'abord les projets similaires
+  try {
+    const { data } = await api.post('/projects/find-similar', {
+      template_id: template.value.id,
+      mode: config.value.mode,
+    })
+
+    if (data.length > 0) {
+      similarProjects.value = data
+      similarDialog.value = true
+      return  // ⬅️ on attend la décision de l'user
+    }
+  } catch {
+    // En cas d'erreur, on continue quand même
+  }
+
+  await createProject()
+}
+
+async function createProject() {
+  similarDialog.value = false
   generating.value = true
   try {
     const { data } = await api.post('/projects', {
@@ -179,8 +227,6 @@ async function generateGame() {
       mode: config.value.mode,
       players: config.value.players,
     })
-
-    // Redirige vers la visualisation du jeu créé
     router.push(`/projects/${data.id}`)
   } catch (e) {
     if (e.response?.status === 422) errors.value = e.response.data.errors ?? {}
@@ -188,6 +234,20 @@ async function generateGame() {
   } finally {
     generating.value = false
   }
+}
+function formatDate(date) {
+  return new Date(date).toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+function goToProject(id) {
+  similarDialog.value = false
+  router.push(`/projects/${id}`)
 }
 
 onMounted(loadTemplate)

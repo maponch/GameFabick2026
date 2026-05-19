@@ -124,6 +124,21 @@ class ProjectController extends Controller
             'created_at'   => $project->created_at,
         ]);
     }
+    public function findSimilar(Request $request)
+    {
+        $data = $request->validate([
+            'template_id' => 'required|exists:game_templates,id',
+            'mode'        => 'required|in:printable,existing_deck',
+        ]);
+
+        $similar = $request->user()->projects()
+            ->where('template_id', $data['template_id'])
+            ->where('mode', $data['mode'])
+            ->orderBy('created_at', 'desc')
+            ->get(['id', 'title', 'created_at']);
+
+        return response()->json($similar);
+    }
 
     // Suppression d'un projet
     public function destroy(Request $request, Project $project)
