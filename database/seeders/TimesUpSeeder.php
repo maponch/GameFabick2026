@@ -26,7 +26,7 @@ class TimesUpSeeder extends Seeder
             'duration_min'           => 30,
             'duration_max'           => 45,
             'supports_existing_deck' => false,
-            'is_published'           => true,
+            'status'                 => 'published',
         ]);
 
         // 3. Personnalités (40 cartes identiques visuellement)

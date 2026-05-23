@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Api\Game;
 
 use App\Http\Controllers\Controller;
@@ -10,7 +9,7 @@ class GameTemplateController extends Controller
     public function index()
     {
         $templates = GameTemplate::with(['type', 'objects'])
-            ->where('is_published', true)
+            ->published()
             ->orderBy('name')
             ->get()
             ->map(fn($t) => [
@@ -26,7 +25,6 @@ class GameTemplateController extends Controller
                 'supports_existing_deck' => $t->supports_existing_deck,
                 'objects_count'          => $t->objects->count(),
             ]);
-
         return response()->json($templates);
     }
 
@@ -34,9 +32,8 @@ class GameTemplateController extends Controller
     {
         $template = GameTemplate::with(['type', 'objects'])
             ->where('slug', $slug)
-            ->where('is_published', true)
+            ->published()
             ->firstOrFail();
-
         return response()->json([
             'id'                     => $template->id,
             'name'                   => $template->name,

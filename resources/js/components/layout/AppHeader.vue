@@ -18,7 +18,15 @@
       <v-btn variant="text" to="/dashboard">Dashboard</v-btn>
       <v-btn variant="text" to="/games">Jeux</v-btn>
       <v-btn variant="text" :to="{ name: 'profile' }">Profil</v-btn>
-      <v-btn v-if="user.role === 'admin'" variant="text" to="/admin">Admin</v-btn>
+      <v-menu v-if="user.role === 'admin'">
+        <template #activator="{ props }">
+          <v-btn variant="text" v-bind="props">Admin</v-btn>
+        </template>
+        <v-list>
+          <v-list-item prepend-icon="mdi-view-dashboard" title="Dashboard" to="/admin" />
+          <v-list-item prepend-icon="mdi-cards-playing" title="Templates de jeu" to="/admin/templates" />
+          </v-list>
+        </v-menu>
       <v-btn variant="text" :loading="logoutLoading" @click="logout">Logout</v-btn>
     </template>
 
@@ -47,8 +55,8 @@
       <v-list-item prepend-icon="mdi-view-dashboard" title="Dashboard" to="/dashboard" @click="drawer = false" />
       <v-list-item prepend-icon="mdi-cards" title="Jeux" to="/games" @click="drawer = false" />
       <v-list-item prepend-icon="mdi-account" title="Profil" :to="{ name: 'profile' }" @click="drawer = false" />
-      <v-list-item v-if="user.role === 'admin'" prepend-icon="mdi-shield-crown" title="Admin" to="/admin"
-        @click="drawer = false" />
+      <v-list-item v-if="user.role === 'admin'" prepend-icon="mdi-cards-playing" title="Templates de jeu"
+        to="/admin/templates" @click="drawer = false" />
 
       <v-divider />
 

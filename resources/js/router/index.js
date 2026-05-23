@@ -36,6 +36,21 @@ const routes = [
     meta: { requiresAuth: true, requiresAdmin: true }
   },
   {
+    path: '/admin/templates',
+    component: () => import('../pages/admin/templates/index.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/templates/create',
+    component: () => import('../pages/admin/templates/create.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/templates/:id/edit',
+    component: () => import('../pages/admin/templates/edit.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
     path: '/games',
     component: () => import('../pages/games/index.vue'),
     meta: { requiresAuth: true }

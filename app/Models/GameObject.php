@@ -15,10 +15,12 @@ class GameObject extends Model
         'default_color',
         'default_image_path',
         'existing_deck_mapping',
+        'custom_data',
     ];
 
     protected $casts = [
         'existing_deck_mapping' => 'array',
+        'custom_data' => 'array',
     ];
 
     public function templates()

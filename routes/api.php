@@ -1,6 +1,8 @@
 <?php
 
-use App\Http\Controllers\Api\AdminController;
+use App\Http\Controllers\Api\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Api\Admin\GameTemplateController as AdminGameTemplateController;
+use App\Http\Controllers\Api\Admin\ObjectController as AdminObjectController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\Api\Game\GameTemplateController;
@@ -59,16 +61,28 @@ Route::post('/user/restore', [UserController::class, 'restore']);
 
 
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
-    Route::get('/stats', [AdminController::class, 'stats']);
-    Route::get('/users', [AdminController::class, 'users']);
-    Route::patch('/users/{user}/role', [AdminController::class, 'updateRole']);
-    Route::post('/users/{user}/suspend', [AdminController::class, 'suspend']);
-    Route::patch('/users/{user}/unsuspend', [AdminController::class, 'unsuspend']);
-    Route::delete('/users/{user}', [AdminController::class, 'destroy']);
-    Route::get('/users/{user}', [AdminController::class, 'show']);
-    Route::post('/users/{user}/regenerate-2fa-codes', [AdminController::class, 'regenerateRecoveryCodes']);
-    Route::post('/users/{user}/disable-2fa',          [AdminController::class, 'disableTwoFactor']);
-    Route::post('/users/{user}/cancel-deletion', [AdminController::class, 'cancelDeletion'])
+    Route::get('/stats', [AdminUserController::class, 'stats']);
+    Route::get('/users', [AdminUserController::class, 'users']);
+    Route::patch('/users/{user}/role', [AdminUserController::class, 'updateRole']);
+    Route::post('/users/{user}/suspend', [AdminUserController::class, 'suspend']);
+    Route::patch('/users/{user}/unsuspend', [AdminUserController::class, 'unsuspend']);
+    Route::delete('/users/{user}', [AdminUserController::class, 'destroy']);
+    Route::get('/users/{user}', [AdminUserController::class, 'show']);
+    Route::post('/users/{user}/regenerate-2fa-codes', [AdminUserController::class, 'regenerateRecoveryCodes']);
+    Route::post('/users/{user}/disable-2fa',          [AdminUserController::class, 'disableTwoFactor']);
+    Route::post('/users/{user}/cancel-deletion', [AdminUserController::class, 'cancelDeletion'])
     ->withTrashed();
+
+    Route::get('/templates', [AdminGameTemplateController::class, 'index']);
+    Route::post('/templates', [AdminGameTemplateController::class, 'store']);
+    Route::get('/templates/{template}', [AdminGameTemplateController::class, 'show']);
+    Route::match(['put', 'patch'], '/templates/{template}', [AdminGameTemplateController::class, 'update']);
+    Route::patch('/templates/{template}/status', [AdminGameTemplateController::class, 'changeStatus']);
+    Route::delete('/templates/{template}', [AdminGameTemplateController::class, 'destroy']);
+
+    Route::get('/templates/{template}/objects', [AdminObjectController::class, 'index']);
+    Route::post('/templates/{template}/objects', [AdminObjectController::class, 'store']);
+    Route::match(['put', 'patch'], '/templates/{template}/objects/{object}', [AdminObjectController::class, 'update']);
+    Route::delete('/templates/{template}/objects/{object}', [AdminObjectController::class, 'destroy']);
 
 });

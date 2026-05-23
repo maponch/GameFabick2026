@@ -26,7 +26,7 @@ class LoupGarouSeeder extends Seeder
             'duration_min'           => 30,
             'duration_max'           => 60,
             'supports_existing_deck' => true,
-            'is_published'           => true,
+            'status'                 => 'published',
         ]);
 
         // 3. Objets (rôles)
