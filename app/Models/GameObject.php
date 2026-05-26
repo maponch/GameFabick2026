@@ -31,7 +31,7 @@ class GameObject extends Model
 
     public function projects()
     {
-        return $this->belongsToMany(Project::class, 'object_project')
+        return $this->belongsToMany(Project::class, 'object_project', 'object_id', 'project_id')
                     ->withPivot(['custom_image_id', 'custom_text', 'custom_color'])
                     ->withTimestamps();
     }

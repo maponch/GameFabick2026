@@ -2,10 +2,13 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Http\Requests\Admin\Concerns\ValidatesCustomData;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateObjectRequest extends FormRequest
 {
+    use ValidatesCustomData;
+
     public function authorize(): bool
     {
         $user = $this->user();
@@ -31,5 +34,12 @@ class UpdateObjectRequest extends FormRequest
         return [
             'default_color.regex' => 'La couleur doit être au format hexadécimal (#RRGGBB).',
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $this->validateCustomData($validator);
+        });
     }
 }

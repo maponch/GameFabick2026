@@ -65,8 +65,11 @@ class GameTemplateController extends Controller
     public function store(StoreGameTemplateRequest $request)
     {
         $data = $request->validated();
-        $data['slug'] = $data['slug'] ?? $this->uniqueSlug($data['name']);
+        $data['slug'] = $this->uniqueSlug($data['name']);
         $data['created_by'] = $request->user()->id;
+        $data['status'] = GameTemplate::STATUS_DRAFT;
+        $data['card_schema'] = [];
+        $data['supports_existing_deck'] = $data['supports_existing_deck'] ?? false;
 
         $template = GameTemplate::create($data);
 
