@@ -3,7 +3,8 @@
 use App\Http\Controllers\Api\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Api\Admin\GameTemplateController as AdminGameTemplateController;
 use App\Http\Controllers\Api\Admin\ObjectController as AdminObjectController;
-use App\Http\Controllers\Api\Admin\TypeController as AdminTypeController;
+use App\Http\Controllers\Api\Admin\Reference\TypeController as AdminTypeController;
+use App\Http\Controllers\Api\Admin\Reference\GameFormatController as AdminGameFormatController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\Api\Game\GameTemplateController;
@@ -87,4 +88,5 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::delete('/templates/{template}/objects/{object}', [AdminObjectController::class, 'destroy']);
 
     Route::get('/types', [AdminTypeController::class, 'index']);
+    Route::get('/formats', [AdminGameFormatController::class, 'index']);
 });

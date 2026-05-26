@@ -61,4 +61,9 @@ class GameTemplate extends Model
     {
         return $this->hasMany(Project::class, 'template_id');
     }
+    public function formats()
+    {
+        return $this->belongsToMany(GameFormat::class, 'game_template_format')
+                    ->withTimestamps();
+    }
 }

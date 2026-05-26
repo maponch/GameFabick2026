@@ -17,8 +17,8 @@
         <v-expansion-panel value="infos">
           <v-expansion-panel-title>Informations générales</v-expansion-panel-title>
           <v-expansion-panel-text>
-            <TemplateForm ref="formRef" v-model="form" :types="types" :types-loading="typesLoading"
-              :server-errors="errors" />
+            <TemplateForm ref="formRef" v-model="form" :types="types" :types-loading="typesLoading" :formats="formats"
+              :formats-loading="formatsLoading" :server-errors="errors" />
             <div class="d-flex justify-end mt-2">
               <v-btn color="primary" :loading="savingInfos" @click="saveInfos">
                 Enregistrer les informations
@@ -172,6 +172,9 @@ const errors = ref({})
 const openPanels = ref(['infos'])
 const snackbar = ref({ show: false, message: '', color: 'success' })
 
+const formats = ref([])
+const formatsLoading = ref(true)
+
 const objectModal = ref(false)
 const objectToEdit = ref(null)
 const deleteObjectDialog = ref(false)
@@ -196,6 +199,7 @@ const form = ref({
   description: '',
   rules: '',
   type_id: null,
+  format_ids: [],
   min_players: 1,
   max_players: 4,
   duration_min: 15,
@@ -231,6 +235,17 @@ async function loadTypes() {
     typesLoading.value = false
   }
 }
+async function loadFormats() {
+  formatsLoading.value = true
+  try {
+    const { data } = await api.get('/admin/formats')
+    formats.value = data
+  } catch (e) {
+    showError('Erreur lors du chargement des formats.')
+  } finally {
+    formatsLoading.value = false
+  }
+}
 
 async function loadTemplate() {
   loading.value = true
@@ -253,6 +268,7 @@ async function loadTemplate() {
       description: data.description ?? '',
       rules: data.rules ?? '',
       type_id: data.type_id,
+      format_ids: data.formats?.map(f => f.id) ?? [],
       min_players: data.min_players,
       max_players: data.max_players,
       duration_min: data.duration_min,
@@ -428,6 +444,7 @@ function goBack() { router.push('/admin/templates') }
 
 onMounted(() => {
   loadTypes()
+  loadFormats()
   loadTemplate()
 })
 </script>

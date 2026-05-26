@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\Admin;
+namespace App\Http\Controllers\Api\Admin\Reference;
 
 use App\Http\Controllers\Controller;
 use App\Models\Type;

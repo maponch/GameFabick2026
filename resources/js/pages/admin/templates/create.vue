@@ -11,7 +11,8 @@
     </p>
 
     <v-card class="pa-4 mb-4">
-      <TemplateForm ref="formRef" v-model="form" :types="types" :types-loading="typesLoading" :server-errors="errors" />
+      <TemplateForm ref="formRef" v-model="form" :types="types" :types-loading="typesLoading" :formats="formats"
+        :formats-loading="formatsLoading" :server-errors="errors" />
     </v-card>
 
     <div class="d-flex ga-2">
@@ -40,12 +41,15 @@ const typesLoading = ref(true)
 const saving = ref(false)
 const errors = ref({})
 const snackbar = ref({ show: false, message: '', color: 'success' })
+const formats = ref([])
+const formatsLoading = ref(true)
 
 const form = ref({
   name: '',
   description: '',
   rules: '',
   type_id: null,
+  format_ids: [],
   min_players: 1,
   max_players: 4,
   duration_min: 15,
@@ -64,6 +68,17 @@ async function loadTypes() {
     showError('Erreur lors du chargement des types.')
   } finally {
     typesLoading.value = false
+  }
+}
+async function loadFormats() {
+  formatsLoading.value = true
+  try {
+    const { data } = await api.get('/admin/formats')
+    formats.value = data
+  } catch (e) {
+    showError('Erreur lors du chargement des formats.')
+  } finally {
+    formatsLoading.value = false
   }
 }
 
@@ -96,5 +111,8 @@ async function submit() {
 
 function goBack() { router.push('/admin/templates') }
 
-onMounted(loadTypes)
+onMounted(async () => {
+  loadTypes()
+  loadFormats()
+})
 </script>

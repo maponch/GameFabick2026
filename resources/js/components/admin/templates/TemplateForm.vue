@@ -6,6 +6,9 @@
     <v-select v-model="model.type_id" :items="types" item-title="name" item-value="id" label="Type de jeu *"
       variant="outlined" :loading="typesLoading" :rules="[rules.required]" :error-messages="serverErrors.type_id"
       class="mb-2" />
+    <v-select v-model="model.format_ids" :items="formats" item-title="name" item-value="id" label="Format(s) de jeu *"
+      variant="outlined" multiple chips closable-chips :loading="formatsLoading" :rules="[rules.atLeastOne]"
+      :error-messages="serverErrors.format_ids" class="mb-2" />
 
     <v-textarea v-model="model.description" label="Description" variant="outlined" rows="2"
       :error-messages="serverErrors.description" class="mb-2" />
@@ -40,13 +43,15 @@
 <script setup>
 import { ref } from 'vue'
 
-const model = defineModel({ required: true })
-
 const props = defineProps({
   types: { type: Array, default: () => [] },
   typesLoading: { type: Boolean, default: false },
+  formats: { type: Array, default: () => [] },
+  formatsLoading: { type: Boolean, default: false },
   serverErrors: { type: Object, default: () => ({}) },
 })
+
+const model = defineModel({ required: true })
 
 const formRef = ref(null)
 
@@ -55,6 +60,7 @@ const rules = {
   positive: v => (v > 0) || 'Doit être supérieur à 0',
   maxGteMin: v => (v >= model.value.min_players) || 'Doit être ≥ joueurs min',
   durMaxGteMin: v => (v >= model.value.duration_min) || 'Doit être ≥ durée min',
+  atLeastOne: v => (Array.isArray(v) && v.length > 0) || 'Sélectionnez au moins un format',
 }
 
 async function validate() {

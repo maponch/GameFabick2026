@@ -24,6 +24,8 @@ class UpdateGameTemplateRequest extends FormRequest
             'description'            => ['sometimes', 'nullable', 'string', 'max:2000'],
             'rules'                  => ['sometimes', 'nullable', 'string'],
             'type_id'                => ['sometimes', 'required', 'integer', 'exists:types,id'],
+            'format_ids'             => ['sometimes', 'array', 'min:1'],
+            'format_ids.*'           => ['integer', 'exists:game_formats,id'],
             'min_players'            => ['sometimes', 'required', 'integer', 'min:1', 'max:99'],
             'max_players'            => ['sometimes', 'required', 'integer', 'min:1', 'max:99', 'gte:min_players'],
             'duration_min'           => ['sometimes', 'required', 'integer', 'min:1', 'max:600'],

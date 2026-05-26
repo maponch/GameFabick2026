@@ -26,6 +26,8 @@ class StoreObjectRequest extends FormRequest
             'existing_deck_mapping' => ['nullable', 'array'],
             'existing_deck_mapping.*' => ['string', 'max:10'],
             'custom_data'           => ['nullable', 'array'],
+            'format_ids'   => ['required', 'array', 'min:1'],
+            'format_ids.*' => ['integer', 'exists:game_formats,id'],
         ];
     }
 

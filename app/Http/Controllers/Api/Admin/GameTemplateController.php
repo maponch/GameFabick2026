@@ -32,7 +32,7 @@ class GameTemplateController extends Controller
 
     public function show(GameTemplate $template)
     {
-        $template->load(['type', 'objects']);
+        $template->load(['type', 'objects', 'formats']);
 
         return response()->json([
             'id'                     => $template->id,
@@ -42,6 +42,11 @@ class GameTemplateController extends Controller
             'rules'                  => $template->rules,
             'type_id'                => $template->type_id,
             'type'                   => $template->type?->name,
+            'formats'                => $template->formats->map(fn ($f) => [
+                'id'                    => $f->id,
+                'name'                  => $f->name,
+                'slug'                  => $f->slug,
+            ]),
             'min_players'            => $template->min_players,
             'max_players'            => $template->max_players,
             'duration_min'           => $template->duration_min,
@@ -65,6 +70,9 @@ class GameTemplateController extends Controller
     public function store(StoreGameTemplateRequest $request)
     {
         $data = $request->validated();
+        $formatIds = $data['format_ids'] ?? [];
+        unset($data['format_ids']);
+
         $data['slug'] = $this->uniqueSlug($data['name']);
         $data['created_by'] = $request->user()->id;
         $data['status'] = GameTemplate::STATUS_DRAFT;
@@ -72,6 +80,7 @@ class GameTemplateController extends Controller
         $data['supports_existing_deck'] = $data['supports_existing_deck'] ?? false;
 
         $template = GameTemplate::create($data);
+        $template->formats()->attach($formatIds);
 
         return response()->json([
             'id'   => $template->id,
@@ -83,11 +92,18 @@ class GameTemplateController extends Controller
     {
         $data = $request->validated();
 
+        $formatIds = $data['format_ids'] ?? null;
+        unset($data['format_ids']);
+
         if (array_key_exists('slug', $data) && empty($data['slug'])) {
             $data['slug'] = $this->uniqueSlug($data['name'] ?? $template->name, $template->id);
         }
 
         $template->update($data);
+
+        if ($formatIds !== null) {
+            $template->formats()->sync($formatIds);
+        }
 
         return response()->json(['id' => $template->id, 'slug' => $template->slug]);
     }
