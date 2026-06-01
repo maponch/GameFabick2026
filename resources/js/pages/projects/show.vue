@@ -76,8 +76,9 @@
                   <tr v-for="object in project.objects" :key="object.id">
                     <td>
                       <v-chip v-for="mapping in object.existing_deck_mapping" :key="mapping"
-                        :color="object.default_color" size="small" variant="tonal" class="me-1">
-                        {{ mapping }}
+                        :color="cardColor(mapping) === 'red' ? 'red' : 'white'"
+                        variant="outlined" size="default" class="me-1">
+                        {{ cardShortLabel(mapping) }}
                       </v-chip>
                     </td>
                     <td><strong>{{ object.name }}</strong></td>
@@ -153,6 +154,7 @@ import { api } from '../../api'
 import html2pdf from 'html2pdf.js'
 import PrintableCards from '../../components/projects/PrintableCards.vue'
 import PrintableCheatsheet from '../../components/projects/PrintableCheatsheet.vue'
+import { cardShortLabel, cardColor } from '../../constants/classicDeck' 
 
 const router = useRouter()
 const route = useRoute()
@@ -224,3 +226,14 @@ async function generatePdf() {
 
 onMounted(loadProject)
 </script>
+<style scoped>
+.mapping-chip.red {
+  color: #c62828 !important;
+  border-color: #c62828 !important;
+}
+
+.mapping-chip.black {
+  color: #000 !important;
+  border-color: #000 !important;
+}
+</style>

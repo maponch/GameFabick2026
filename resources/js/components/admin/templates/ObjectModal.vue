@@ -47,8 +47,21 @@
 
               <v-switch v-else-if="field.type === 'boolean'" v-model="form.custom_data[field.key]" :label="field.label"
                 color="primary" density="compact" class="mb-2" />
+
             </template>
           </template>
+
+          <!-- BLOC MAPPING ICI, hors du v-if cardSchema -->
+          <template v-if="supportsDeckMapping">
+            <v-divider class="mb-4" />
+            <div class="text-subtitle-2 mb-1">Correspondance jeu de cartes classique</div>
+            <p class="text-caption text-medium-emphasis mb-3">
+              Sélectionnez les cartes du jeu classique qui correspondront à cette carte
+              en mode pense-bête.
+            </p>
+            <DeckMappingSelector v-model="form.existing_deck_mapping" />
+          </template>
+
         </v-form>
       </v-card-text>
 
@@ -64,14 +77,17 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, watchEffect } from 'vue'
 import { api } from '../../../api'
+import DeckMappingSelector from './DeckMappingSelector.vue'
+
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
   templateId: { type: [String, Number], required: true },
   object: { type: Object, default: null },
   cardSchema: { type: Array, default: () => [] },
+  templateFormats: { type: Array, default: () => [] },
 })
 
 const emit = defineEmits(['update:modelValue', 'saved'])
@@ -87,6 +103,13 @@ const formRef = ref(null)
 const saving = ref(false)
 const errors = ref({})
 
+const supportsDeckMapping = computed(() =>
+  props.templateFormats.includes('cartes-classiques')
+)
+watchEffect(() => {
+  console.log('templateFormats:', props.templateFormats, '→ mapping:', supportsDeckMapping.value)
+})
+
 const rules = {
   required: v => (v !== null && v !== undefined && v !== '') || 'Champ requis',
   positive: v => (v > 0) || 'Doit être supérieur à 0',
@@ -100,6 +123,7 @@ function blankForm() {
     quantity: 1,
     default_color: '#1976D2',
     custom_data: {},
+    existing_deck_mapping: [],
   }
 }
 
@@ -132,6 +156,7 @@ watch(dialog, (open) => {
         quantity: props.object.quantity,
         default_color: props.object.default_color || '#1976D2',
         custom_data: initCustomData(props.object.custom_data ?? {}),
+        existing_deck_mapping: props.object.existing_deck_mapping ?? [],
       }
     } else {
       form.value = { ...blankForm(), custom_data: initCustomData() }
@@ -169,6 +194,7 @@ async function submit() {
       quantity: form.value.quantity,
       default_color: form.value.default_color,
       custom_data: cleanedCustomData,
+      existing_deck_mapping: form.value.existing_deck_mapping,
     }
 
     if (isEdit.value) {

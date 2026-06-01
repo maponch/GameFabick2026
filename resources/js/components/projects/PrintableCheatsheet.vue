@@ -18,8 +18,9 @@
       <tbody>
         <tr v-for="object in project.objects" :key="object.id">
           <td>
-            <span v-for="mapping in object.existing_deck_mapping" :key="mapping" class="card-chip">
-              {{ mapping }}
+            <span v-for="mapping in object.existing_deck_mapping" :key="mapping" class="card-chip"
+              :class="cardColor(mapping)">
+              {{ cardShortLabel(mapping) }}
             </span>
           </td>
           <td><strong>{{ object.name }}</strong></td>
@@ -34,6 +35,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import { cardShortLabel, cardColor } from '../../constants/classicDeck'
 
 defineProps({ project: { type: Object, required: true } })
 
@@ -85,16 +87,26 @@ defineExpose({ printArea })
 .card-chip {
   display: inline-flex;
   align-items: center;
-  background: #1976D2;
-  color: white;
-  padding: 4pt 8pt;
-  /* ← augmenté pour respirer */
-  border-radius: 4pt;
-  margin-right: 2pt;
-  margin-bottom: 2pt;
+  justify-content: center;
+  min-width: 28px;
+  padding: 2mm 2mm;
+  margin: 0.5mm;
+  border-radius: 3px;
+  border: 1.5px solid #333;
+  background: white;
   font-size: 9pt;
-  font-weight: bold;
-  min-height: 18pt;
-  /* ← hauteur minimale lisible */
+  font-weight: 600;
+  line-height: 1.4;
+  vertical-align: middle;
+}
+
+.card-chip.red {
+  color: #c62828;
+  border-color: #c62828;
+}
+
+.card-chip.black {
+  color: #000;
+  border-color: #000;
 }
 </style>

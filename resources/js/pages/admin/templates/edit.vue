@@ -127,7 +127,7 @@
       </v-expansion-panels>
     </template>
 
-    <ObjectModal v-model="objectModal" :template-id="templateId" :object="objectToEdit" :card-schema="savedSchema"
+    <ObjectModal v-model="objectModal" :template-id="templateId" :object="objectToEdit" :card-schema="savedSchema" :template-formats="selectedFormatSlugs"
       @saved="onObjectSaved" />
 
     <v-dialog v-model="deleteObjectDialog" max-width="440">
@@ -219,6 +219,11 @@ const savedSchema = computed(() => {
   } catch {
     return []
   }
+})
+const selectedFormatSlugs = computed(() => {
+  return formats.value
+    .filter(f => form.value.format_ids.includes(f.id))
+    .map(f => f.slug)
 })
 
 function showSuccess(msg) { snackbar.value = { show: true, message: msg, color: 'success' } }

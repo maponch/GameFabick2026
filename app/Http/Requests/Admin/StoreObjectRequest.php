@@ -24,10 +24,8 @@ class StoreObjectRequest extends FormRequest
             'default_color'         => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'default_image_path'    => ['nullable', 'string', 'max:255'],
             'existing_deck_mapping' => ['nullable', 'array'],
-            'existing_deck_mapping.*' => ['string', 'max:10'],
+            'existing_deck_mapping.*' => ['string', 'max:20'],
             'custom_data'           => ['nullable', 'array'],
-            'format_ids'   => ['required', 'array', 'min:1'],
-            'format_ids.*' => ['integer', 'exists:game_formats,id'],
         ];
     }
 
