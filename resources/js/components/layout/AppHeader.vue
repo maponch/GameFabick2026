@@ -25,6 +25,7 @@
         <v-list>
           <v-list-item prepend-icon="mdi-view-dashboard" title="Dashboard" to="/admin" />
           <v-list-item prepend-icon="mdi-cards-playing" title="Templates de jeu" to="/admin/templates" />
+          <v-list-item prepend-icon="mdi-format-list-bulleted-type" title="Référentiels" to="/admin/references" />
           </v-list>
         </v-menu>
       <v-btn variant="text" :loading="logoutLoading" @click="logout">Logout</v-btn>
@@ -57,6 +58,8 @@
       <v-list-item prepend-icon="mdi-account" title="Profil" :to="{ name: 'profile' }" @click="drawer = false" />
       <v-list-item v-if="user.role === 'admin'" prepend-icon="mdi-cards-playing" title="Templates de jeu"
         to="/admin/templates" @click="drawer = false" />
+      <v-list-item v-if="user.role === 'admin'" prepend-icon="mdi-format-list-bulleted-type" title="Référentiels"
+        to="/admin/references" @click="drawer = false" />
 
       <v-divider />
 

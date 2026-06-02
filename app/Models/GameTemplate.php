@@ -43,7 +43,7 @@ class GameTemplate extends Model
 
     public function type()
     {
-        return $this->belongsTo(Type::class);
+        return $this->belongsTo(Type::class)->withTrashed();
     }
 
     public function creator()
@@ -64,6 +64,7 @@ class GameTemplate extends Model
     public function formats()
     {
         return $this->belongsToMany(GameFormat::class, 'game_template_format')
-                    ->withTimestamps();
+                    ->withTimestamps()
+                    ->withTrashed();
     }
 }

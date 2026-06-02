@@ -51,6 +51,11 @@ const routes = [
     meta: { requiresAuth: true, requiresAdmin: true }
   },
   {
+    path: '/admin/references',
+    component: () => import('../pages/admin/references/index.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
     path: '/games',
     component: () => import('../pages/games/index.vue'),
     meta: { requiresAuth: true }

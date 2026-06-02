@@ -88,5 +88,14 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::delete('/templates/{template}/objects/{object}', [AdminObjectController::class, 'destroy']);
 
     Route::get('/types', [AdminTypeController::class, 'index']);
+    Route::post('/types', [AdminTypeController::class, 'store']);
+    Route::match(['put', 'patch'], '/types/{type}', [AdminTypeController::class, 'update']);
+    Route::delete('/types/{type}', [AdminTypeController::class, 'destroy']);
+    Route::post('/types/{id}/restore', [AdminTypeController::class, 'restore']);
+
     Route::get('/formats', [AdminGameFormatController::class, 'index']);
+    Route::post('/formats', [AdminGameFormatController::class, 'store']);
+    Route::match(['put', 'patch'], '/formats/{format}', [AdminGameFormatController::class, 'update']);
+    Route::delete('/formats/{format}', [AdminGameFormatController::class, 'destroy']);
+    Route::post('/formats/{id}/restore', [AdminGameFormatController::class, 'restore']);
 });
