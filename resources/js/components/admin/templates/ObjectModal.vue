@@ -59,7 +59,10 @@
               Sélectionnez les cartes du jeu classique qui correspondront à cette carte
               en mode pense-bête.
             </p>
-            <DeckMappingSelector v-model="form.existing_deck_mapping" />
+            <DeckMappingSelector v-model="form.existing_deck_mapping" :locked="lockedCards" />
+            <div v-if="errors.existing_deck_mapping" class="text-error text-caption mt-2">
+              {{ errors.existing_deck_mapping[0] }}
+            </div>
           </template>
 
         </v-form>
@@ -88,6 +91,7 @@ const props = defineProps({
   object: { type: Object, default: null },
   cardSchema: { type: Array, default: () => [] },
   templateFormats: { type: Array, default: () => [] },
+  existingObjects: { type: Array, default: () => [] },
 })
 
 const emit = defineEmits(['update:modelValue', 'saved'])
@@ -115,6 +119,17 @@ const rules = {
   positive: v => (v > 0) || 'Doit être supérieur à 0',
   isNumber: v => v === null || v === '' || !isNaN(Number(v)) || 'Doit être un nombre',
 }
+const lockedCards = computed(() => {
+  const editingId = props.object?.id
+  const map = {}
+  for (const obj of props.existingObjects) {
+    if (obj.id === editingId) continue
+    for (const cardId of obj.existing_deck_mapping ?? []) {
+      map[cardId] = obj.name
+    }
+  }
+  return map
+})
 
 function blankForm() {
   return {

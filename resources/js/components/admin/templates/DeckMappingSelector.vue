@@ -19,17 +19,33 @@
     <v-divider class="mb-3" />
 
     <div class="deck-grid mb-3">
-      <button v-for="card in gridCards" :key="card.id" type="button" class="deck-card"
-        :class="{ selected: isSelected(card.id), red: card.color === 'red' }" @click="toggleCard(card.id)">
-        {{ card.short }}
-      </button>
+      <v-tooltip v-for="card in gridCards" :key="card.id"
+        :text="isLocked(card.id) ? `Pris par : ${lockedBy(card.id)}` : ''" :disabled="!isLocked(card.id)"
+        location="top">
+        <template #activator="{ props: tProps }">
+          <button v-bind="tProps" type="button" class="deck-card" :class="{
+            selected: isSelected(card.id),
+            red: card.color === 'red',
+            locked: isLocked(card.id),
+          }" :disabled="isLocked(card.id)" @click="toggleCard(card.id)">
+            {{ card.short }}
+          </button>
+        </template>
+      </v-tooltip>
     </div>
 
     <div class="d-flex flex-wrap ga-2 mb-3">
-      <v-chip v-for="joker in jokers" :key="joker.id" size="small" :color="isSelected(joker.id) ? 'primary' : undefined"
-        :variant="isSelected(joker.id) ? 'flat' : 'outlined'" @click="toggleCard(joker.id)">
-        {{ joker.label }}
-      </v-chip>
+      <v-tooltip v-for="joker in jokers" :key="joker.id"
+        :text="isLocked(joker.id) ? `Pris par : ${lockedBy(joker.id)}` : ''" :disabled="!isLocked(joker.id)"
+        location="top">
+        <template #activator="{ props: tProps }">
+          <v-chip v-bind="tProps" size="small" :color="isSelected(joker.id) ? 'primary' : undefined"
+            :variant="isSelected(joker.id) ? 'flat' : 'outlined'" :class="{ 'joker-locked': isLocked(joker.id) }"
+            @click="toggleCard(joker.id)">
+            {{ joker.label }}
+          </v-chip>
+        </template>
+      </v-tooltip>
     </div>
 
     <div class="d-flex align-center justify-space-between">
@@ -73,6 +89,9 @@ const gridCards = computed(() => {
   }
   return cards
 })
+const props = defineProps({
+  locked: { type: Object, default: () => ({}) },
+})
 
 function isSelected(id) {
   return selected.value.includes(id)
@@ -91,6 +110,7 @@ function setSelection(next) {
 }
 
 function toggleCard(id) {
+  if (isLocked(id)) return
   if (isSelected(id)) {
     setSelection(selected.value.filter(c => c !== id))
   } else {
@@ -99,8 +119,10 @@ function toggleCard(id) {
 }
 
 function toggleRank(rankId) {
-  const group = cardsByRank(rankId)
-  if (isRankSelected(rankId)) {
+  const group = cardsByRank(rankId).filter(id => !isLocked(id))
+  if (group.length === 0) return
+  const allSelected = group.every(id => selected.value.includes(id))
+  if (allSelected) {
     setSelection(selected.value.filter(c => !group.includes(c)))
   } else {
     setSelection([...selected.value, ...group])
@@ -108,8 +130,10 @@ function toggleRank(rankId) {
 }
 
 function toggleSuit(suitId) {
-  const group = cardsBySuit(suitId)
-  if (isSuitSelected(suitId)) {
+  const group = cardsBySuit(suitId).filter(id => !isLocked(id))
+  if (group.length === 0) return
+  const allSelected = group.every(id => selected.value.includes(id))
+  if (allSelected) {
     setSelection(selected.value.filter(c => !group.includes(c)))
   } else {
     setSelection([...selected.value, ...group])
@@ -118,6 +142,13 @@ function toggleSuit(suitId) {
 
 function clearAll() {
   setSelection([])
+}
+function isLocked(id) {
+  return id in props.locked
+}
+
+function lockedBy(id) {
+  return props.locked[id] ?? null
 }
 </script>
 
@@ -157,6 +188,19 @@ function clearAll() {
 
 .deck-card:hover {
   transform: scale(1.05);
+}
+.deck-card.locked {
+  opacity: 0.35;
+  cursor: not-allowed;
+  background: #f0f0f0;
+}
+
+.deck-card.locked:hover {
+  transform: none;
+}
+.joker-locked {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 @media (max-width: 900px) {

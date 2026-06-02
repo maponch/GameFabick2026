@@ -127,8 +127,8 @@
       </v-expansion-panels>
     </template>
 
-    <ObjectModal v-model="objectModal" :template-id="templateId" :object="objectToEdit" :card-schema="savedSchema" :template-formats="selectedFormatSlugs"
-      @saved="onObjectSaved" />
+    <ObjectModal v-model="objectModal" :template-id="templateId" :object="objectToEdit" :card-schema="savedSchema"
+      :template-formats="selectedFormatSlugs" :existing-objects="objects" @saved="onObjectSaved" />
 
     <v-dialog v-model="deleteObjectDialog" max-width="440">
       <v-card>
