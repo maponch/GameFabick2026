@@ -67,4 +67,45 @@ class GameTemplate extends Model
                     ->withTimestamps()
                     ->withTrashed();
     }
+    public function publishabilityReport(): array
+    {
+        $missing = [];
+
+        if (empty(trim((string) $this->description)) || mb_strlen($this->description) < 10) {
+            $missing[] = 'description trop courte (minimum 10 caractères)';
+        }
+
+        if (empty(trim((string) $this->rules)) || mb_strlen($this->rules) < 50) {
+            $missing[] = 'règles trop courtes (minimum 50 caractères)';
+        }
+
+        $this->loadMissing('formats', 'objects');
+
+        $formats = $this->formats;
+        $formatSlugs = $formats->pluck('slug')->all();
+
+        if ($formats->isEmpty()) {
+            $missing[] = 'au moins un format de jeu';
+        }
+
+        if (in_array('impression', $formatSlugs, true)) {
+            if ($this->objects->count() < 2) {
+                $missing[] = 'au moins 2 cartes (format impression)';
+            }
+        }
+
+        if (in_array('cartes-classiques', $formatSlugs, true)) {
+            $withMapping = $this->objects->filter(
+                fn ($o) => is_array($o->existing_deck_mapping) && count($o->existing_deck_mapping) > 0
+            );
+            if ($withMapping->count() < 2) {
+                $missing[] = 'au moins 2 cartes avec un mapping pense-bête (format cartes classiques)';
+            }
+        }
+
+        return [
+            'ready'   => empty($missing),
+            'missing' => $missing,
+        ];
+    }
 }

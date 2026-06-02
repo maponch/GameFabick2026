@@ -124,6 +124,54 @@
             </div>
           </v-expansion-panel-text>
         </v-expansion-panel>
+
+        <v-expansion-panel value="publish">
+          <v-expansion-panel-title>
+            Publication
+            <template #actions>
+              <v-chip v-if="publishable" size="small" :color="publishable.ready ? 'success' : 'warning'" class="mr-2">
+                {{ publishable.ready ? 'Prêt' : 'Incomplet' }}
+              </v-chip>
+            </template>
+          </v-expansion-panel-title>
+          <v-expansion-panel-text>
+            <p class="text-medium-emphasis text-body-2 mb-3">
+              Statut actuel : <strong>{{ statusConfig[template.status]?.label }}</strong>
+            </p>
+
+            <v-alert v-if="publishable && !publishable.ready && template.status !== 'published'" type="warning"
+              variant="tonal" density="compact" class="mb-3">
+              <div class="mb-1">Conditions manquantes pour publier :</div>
+              <ul class="ms-4">
+                <li v-for="(item, i) in publishable.missing" :key="i">{{ item }}</li>
+              </ul>
+            </v-alert>
+
+            <v-alert v-if="publishable?.ready && template.status === 'draft'" type="success" variant="tonal"
+              density="compact" class="mb-3">
+              Toutes les conditions sont remplies. Vous pouvez publier ce template.
+            </v-alert>
+
+            <div class="d-flex ga-2">
+              <v-btn v-if="template.status !== 'published'" color="success" :disabled="!publishable?.ready"
+                :loading="changingStatus" @click="changeStatus('published')">
+                Publier
+              </v-btn>
+              <v-btn v-if="template.status === 'published'" color="grey" :loading="changingStatus"
+                @click="changeStatus('draft')">
+                Repasser en brouillon
+              </v-btn>
+              <v-btn v-if="template.status !== 'archived'" color="warning" variant="outlined" :loading="changingStatus"
+                @click="changeStatus('archived')">
+                Archiver
+              </v-btn>
+              <v-btn v-if="template.status === 'archived'" color="primary" :loading="changingStatus"
+                @click="changeStatus('draft')">
+                Désarchiver (brouillon)
+              </v-btn>
+            </div>
+          </v-expansion-panel-text>
+        </v-expansion-panel>
       </v-expansion-panels>
     </template>
 
@@ -185,6 +233,9 @@ const cardSchema = ref([])
 const savingSchema = ref(false)
 const schemaChanged = ref(false)
 const schemaSnapshot = ref('[]')
+
+const publishable = ref(null)
+const changingStatus = ref(false)
 
 let schemaUid = 0
 
@@ -257,6 +308,7 @@ async function loadTemplate() {
   try {
     const { data } = await api.get(`/admin/templates/${templateId}`)
     template.value = data
+    publishable.value = data.publishable ?? null
     objects.value = data.objects ?? []
     cardSchema.value = (data.card_schema ?? []).map(f => ({
       _uid: ++schemaUid,
@@ -303,6 +355,7 @@ function openEditObject(obj) {
 async function onObjectSaved() {
   showSuccess('Carte enregistrée.')
   await loadObjects()
+  await loadTemplate()
 }
 
 async function loadObjects() {
@@ -311,6 +364,23 @@ async function loadObjects() {
     objects.value = data
   } catch (e) {
     showError('Erreur lors du chargement des cartes.')
+  }
+}
+async function changeStatus(newStatus) {
+  changingStatus.value = true
+  try {
+    await api.patch(`/admin/templates/${templateId}/status`, { status: newStatus })
+    showSuccess(`Statut mis à jour : ${statusConfig[newStatus]?.label ?? newStatus}.`)
+    await loadTemplate()
+  } catch (e) {
+    if (e.response?.status === 422) {
+      const msg = e.response.data.errors?.status?.[0] ?? 'Action refusée par le serveur.'
+      showError(msg)
+    } else {
+      showError('Erreur lors du changement de statut.')
+    }
+  } finally {
+    changingStatus.value = false
   }
 }
 
@@ -433,6 +503,7 @@ async function saveInfos() {
   try {
     await api.patch(`/admin/templates/${templateId}`, form.value)
     showSuccess('Informations enregistrées.')
+    await loadTemplate()
   } catch (e) {
     if (e.response?.status === 422) {
       errors.value = e.response.data.errors ?? {}

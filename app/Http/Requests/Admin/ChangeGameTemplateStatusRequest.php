@@ -20,4 +20,29 @@ class ChangeGameTemplateStatusRequest extends FormRequest
             'status' => ['required', Rule::in(GameTemplate::STATUSES)],
         ];
     }
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $status = $this->input('status');
+            if ($status !== 'published') {
+                return;
+            }
+
+            $template = $this->route('template');
+            if (!$template instanceof \App\Models\GameTemplate) {
+                $template = \App\Models\GameTemplate::find($template);
+            }
+            if (!$template) {
+                return;
+            }
+
+            $report = $template->publishabilityReport();
+            if (!$report['ready']) {
+                $validator->errors()->add(
+                    'status',
+                    'Le template ne peut pas être publié. Manque : ' . implode(' ; ', $report['missing'])
+                );
+            }
+        });
+    }
 }

@@ -64,6 +64,7 @@ class GameTemplateController extends Controller
                 'existing_deck_mapping' => $o->existing_deck_mapping,
                 'custom_data'           => $o->custom_data,
             ]),
+        'publishable'                => $template->publishabilityReport(),
         ]);
     }
 

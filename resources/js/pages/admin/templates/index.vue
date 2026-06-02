@@ -59,7 +59,7 @@
       </v-card>
     </v-dialog>
 
-    <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000">
+    <v-snackbar v-model="snackbar.show" :color="snackbar.color" :timeout="snackbar.timeout ?? 3000">
       {{ snackbar.message }}
     </v-snackbar>
   </v-container>
@@ -74,7 +74,7 @@ const router = useRouter()
 const templates = ref([])
 const loading = ref(true)
 const search = ref('')
-const snackbar = ref({ show: false, message: '', color: 'success' })
+const snackbar = ref({ show: false, message: '', color: 'success', timeout: 3000 })
 
 const deleteDialog = ref(false)
 const templateToDelete = ref(null)
@@ -102,7 +102,7 @@ const filteredTemplates = computed(() => {
 })
 
 function showSuccess(msg) { snackbar.value = { show: true, message: msg, color: 'success' } }
-function showError(msg) { snackbar.value = { show: true, message: msg, color: 'error' } }
+function showError(msg, timeout = 3000) { snackbar.value = { show: true, message: msg, color: 'error', timeout } }
 
 function formatDate(d) {
   if (!d) return '—'
@@ -154,7 +154,12 @@ async function changeStatus(template, status) {
     showSuccess('Statut mis à jour.')
     await loadTemplates()
   } catch (e) {
-    showError('Erreur lors du changement de statut.')
+    if (e.response?.status === 422) {
+      const msg = e.response.data.errors?.status?.[0] ?? 'Action refusée par le serveur.'
+      showError(msg, 6000)
+    } else {
+      showError('Erreur lors du changement de statut.')
+    }
   }
 }
 
