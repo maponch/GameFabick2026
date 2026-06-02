@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\Admin\GameTemplateController as AdminGameTemplateCo
 use App\Http\Controllers\Api\Admin\ObjectController as AdminObjectController;
 use App\Http\Controllers\Api\Admin\Reference\TypeController as AdminTypeController;
 use App\Http\Controllers\Api\Admin\Reference\GameFormatController as AdminGameFormatController;
+use App\Http\Controllers\Api\Admin\Reference\CardLayoutController as AdminCardLayoutController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\Api\Game\GameTemplateController;
@@ -98,4 +99,6 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::match(['put', 'patch'], '/formats/{format}', [AdminGameFormatController::class, 'update']);
     Route::delete('/formats/{format}', [AdminGameFormatController::class, 'destroy']);
     Route::post('/formats/{id}/restore', [AdminGameFormatController::class, 'restore']);
+
+    Route::get('/card-layouts', [AdminCardLayoutController::class, 'index']);
 });

@@ -6,6 +6,12 @@
       <v-chip v-if="template" :color="statusConfig[template.status]?.color" label class="ml-2">
         {{ statusConfig[template.status]?.label ?? template.status }}
       </v-chip>
+      <v-chip v-if="template?.card_layout" color="info" label class="ml-2">
+        Modèle : {{ template.card_layout.name}}
+      </v-chip>
+      <v-chip v-else color="grey" label class="ml-2">
+        Schéma libre
+      </v-chip>
     </div>
 
     <div v-if="loading" class="d-flex justify-center pa-8">
@@ -66,7 +72,7 @@
           </v-expansion-panel-text>
         </v-expansion-panel>
 
-        <v-expansion-panel value="schema">
+        <v-expansion-panel v-if="!template.card_layout" value="schema">
           <v-expansion-panel-title>
             Champs personnalisés
             <template #actions>

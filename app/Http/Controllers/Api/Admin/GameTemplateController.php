@@ -54,6 +54,10 @@ class GameTemplateController extends Controller
             'supports_existing_deck' => $template->supports_existing_deck,
             'status'                 => $template->status,
             'card_schema'            => $template->card_schema,
+            'card_layout'            => $template->card_layout ? [
+                'slug' => $template->card_layout,
+                'name' => \App\Models\CardLayout::where('slug', $template->card_layout)->value('name'),
+            ] : null,
             'objects'                => $template->objects->map(fn ($o) => [
                 'id'                    => $o->id,
                 'name'                  => $o->name,
@@ -71,14 +75,21 @@ class GameTemplateController extends Controller
     public function store(StoreGameTemplateRequest $request)
     {
         $data = $request->validated();
-        $formatIds = $data['format_ids'] ?? [];
+        $formatIds = $data['format_ids'];
         unset($data['format_ids']);
 
         $data['slug'] = $this->uniqueSlug($data['name']);
         $data['created_by'] = $request->user()->id;
         $data['status'] = GameTemplate::STATUS_DRAFT;
-        $data['card_schema'] = [];
         $data['supports_existing_deck'] = $data['supports_existing_deck'] ?? false;
+        $data['card_layout'] = $data['card_layout'] ?? null;
+
+        if ($data['card_layout']) {
+            $layout = \App\Models\CardLayout::where('slug', $data['card_layout'])->first();
+            $data['card_schema'] = $layout?->schema ?? [];
+        } else {
+            $data['card_schema'] = [];
+        }
 
         $template = GameTemplate::create($data);
         $template->formats()->attach($formatIds);

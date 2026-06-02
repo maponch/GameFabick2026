@@ -26,6 +26,7 @@ class StoreGameTemplateRequest extends FormRequest
             'supports_existing_deck' => ['sometimes', 'boolean'],
             'format_ids'             => ['required', 'array', 'min:1'],
             'format_ids.*'           => ['integer', 'exists:game_formats,id'],
+            'card_layout'            => ['nullable', 'string', 'exists:card_layouts,slug'],
         ];
     }
 }

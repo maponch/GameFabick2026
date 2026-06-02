@@ -46,21 +46,28 @@ class UpdateGameTemplateRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
-            if (!$this->has('card_schema')) return;
-            $schema = $this->input('card_schema', []);
-            if (!is_array($schema)) return;
+            $template = $this->route('template');
+            if (!$template instanceof \App\Models\GameTemplate) {
+                $template = \App\Models\GameTemplate::find($template);
+            }
+            if (!$template) {
+                return;
+            }
 
-            $keys = [];
-            foreach ($schema as $i => $field) {
-                if (!isset($field['key'])) continue;
-                if (in_array($field['key'], $keys, true)) {
-                    $validator->errors()->add("card_schema.$i.key", "La clé '{$field['key']}' est dupliquée.");
-                }
-                $keys[] = $field['key'];
+            // Si le template est en mode prédéfini, refuser toute modification du card_schema
+            if ($template->card_layout && $this->has('card_schema')) {
+                $validator->errors()->add(
+                    'card_schema',
+                    'Le schéma des cartes ne peut pas être modifié pour un template en mode prédéfini.'
+                );
+            }
 
-                if (($field['type'] ?? null) === 'select' && empty($field['options'])) {
-                    $validator->errors()->add("card_schema.$i.options", "Un champ de type 'select' doit avoir au moins une option.");
-                }
+            // Le card_layout est figé à la création, refuser toute modification
+            if ($this->has('card_layout') && $this->input('card_layout') !== $template->card_layout) {
+                $validator->errors()->add(
+                    'card_layout',
+                    'Le mode du template (libre ou prédéfini) ne peut pas être modifié après création.'
+                );
             }
         });
     }

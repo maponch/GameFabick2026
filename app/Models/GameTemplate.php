@@ -29,6 +29,7 @@ class GameTemplate extends Model
         'created_by',
         'status',
         'card_schema',
+        'card_layout',
     ];
 
     protected $casts = [
