@@ -83,7 +83,6 @@ class ProjectController extends Controller
         ], 201);
     }
 
-    // Détail d'un projet (pour visualisation)
     public function show(Request $request, Project $project)
     {
         // Sécurité : seul le propriétaire peut voir son projet
@@ -104,10 +103,15 @@ class ProjectController extends Controller
             'max_players'  => $project->max_players,
             'is_published' => $project->is_published,
             'template'     => $project->template ? [
-                'id'    => $project->template->id,
-                'name'  => $project->template->name,
-                'slug'  => $project->template->slug,
-                'rules' => $project->template->rules,
+                'id'          => $project->template->id,
+                'name'        => $project->template->name,
+                'slug'        => $project->template->slug,
+                'rules'       => $project->template->rules,
+                'card_schema' => $project->template->card_schema,
+                'card_layout' => $project->template->card_layout ? [
+                    'slug' => $project->template->card_layout,
+                    'name' => \App\Models\CardLayout::where('slug', $project->template->card_layout)->value('name'),
+                ] : null,
             ] : null,
             'objects'      => $project->objects->map(fn($o) => [
                 'id'                    => $o->id,
@@ -120,6 +124,7 @@ class ProjectController extends Controller
                 'custom_image_id'       => $o->pivot->custom_image_id,
                 'custom_text'           => $o->pivot->custom_text,
                 'custom_color'          => $o->pivot->custom_color,
+                'custom_data'           => $o->custom_data,
             ]),
             'created_at'   => $project->created_at,
         ]);
