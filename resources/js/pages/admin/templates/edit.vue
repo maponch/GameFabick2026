@@ -13,6 +13,18 @@
         Schéma libre
       </v-chip>
     </div>
+    <v-alert v-if="template?.status === 'published'" type="warning" variant="tonal" class="mb-4" prominent>
+      <div class="d-flex align-center justify-space-between flex-wrap ga-2">
+        <div>
+          <strong>Ce template est publié.</strong>
+          Pour le modifier, repassez-le en brouillon.
+          Les modifications seront ensuite sauvegardées normalement.
+        </div>
+        <v-btn color="warning" variant="flat" :loading="changingStatus" @click="changeStatus('draft')">
+          Repasser en brouillon
+        </v-btn>
+      </div>
+    </v-alert>
 
     <div v-if="loading" class="d-flex justify-center pa-8">
       <v-progress-circular indeterminate color="primary" />
@@ -24,9 +36,9 @@
           <v-expansion-panel-title>Informations générales</v-expansion-panel-title>
           <v-expansion-panel-text>
             <TemplateForm ref="formRef" v-model="form" :types="types" :types-loading="typesLoading" :formats="formats"
-              :formats-loading="formatsLoading" :server-errors="errors" />
+              :formats-loading="formatsLoading" :server-errors="errors" :readonly="isLocked"/>
             <div class="d-flex justify-end mt-2">
-              <v-btn color="primary" :loading="savingInfos" @click="saveInfos">
+              <v-btn color="primary" :loading="savingInfos" @click="saveInfos" :disabled="isLocked">
                 Enregistrer les informations
               </v-btn>
             </div>
@@ -42,7 +54,7 @@
           </v-expansion-panel-title>
           <v-expansion-panel-text>
             <div class="d-flex justify-end mb-3">
-              <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreateObject">
+              <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreateObject" :disabled="isLocked">
                 Ajouter une carte
               </v-btn>
             </div>
@@ -64,8 +76,8 @@
                 </v-list-item-subtitle>
 
                 <template #append>
-                  <v-btn icon="mdi-pencil" size="small" variant="text" @click="openEditObject(obj)" />
-                  <v-btn icon="mdi-delete" size="small" variant="text" color="error" @click="askDeleteObject(obj)" />
+                  <v-btn icon="mdi-pencil" size="small" variant="text" @click="openEditObject(obj)" :disabled="isLocked" />
+                  <v-btn icon="mdi-delete" size="small" variant="text" color="error" @click="askDeleteObject(obj)" :disabled="isLocked" />
                 </template>
               </v-list-item>
             </v-list>
@@ -87,7 +99,7 @@
             </p>
 
             <div class="d-flex justify-end mb-3">
-              <v-btn size="small" prepend-icon="mdi-plus" @click="addField">Ajouter un champ</v-btn>
+              <v-btn size="small" prepend-icon="mdi-plus" @click="addField" :disabled="isLocked">Ajouter un champ</v-btn>
             </div>
 
             <p v-if="cardSchema.length === 0" class="text-medium-emphasis text-body-2">
@@ -95,7 +107,7 @@
             </p>
 
             <v-card v-for="(field, i) in cardSchema" :key="field._uid" variant="tonal" class="pa-3 mb-3">
-              <v-row dense>
+              <v-row density="comfortable">
                 <v-col cols="12" sm="5">
                   <v-text-field v-model="field.label" label="Libellé *" variant="outlined" density="compact"
                     hide-details @update:model-value="onLabelChange(field)" />
@@ -121,10 +133,10 @@
             </v-alert>
 
             <div class="d-flex align-center justify-end mt-2 ga-2">
-              <v-btn v-if="schemaChanged" variant="text" @click="resetSchema">
+              <v-btn v-if="schemaChanged" variant="text" :disabled="isLocked" @click="resetSchema">
                 Annuler les modifications
               </v-btn>
-              <v-btn color="primary" :loading="savingSchema" :disabled="!schemaChanged" @click="saveSchema">
+              <v-btn color="primary" :loading="savingSchema" :disabled="!schemaChanged || isLocked" @click="saveSchema">
                 Enregistrer les champs
               </v-btn>
             </div>
@@ -205,7 +217,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { api } from '../../../api'
 import { useRouter, useRoute } from 'vue-router'
 import TemplateForm from '../../../components/admin/templates/TemplateForm.vue'
@@ -242,6 +254,8 @@ const schemaSnapshot = ref('[]')
 
 const publishable = ref(null)
 const changingStatus = ref(false)
+
+const isLocked = computed(() => template.value?.status === 'published')
 
 let schemaUid = 0
 
@@ -282,6 +296,11 @@ const selectedFormatSlugs = computed(() => {
     .filter(f => form.value.format_ids.includes(f.id))
     .map(f => f.slug)
 })
+watch(cardSchema, () => {
+  if (loading.value) return
+  const current = JSON.stringify(cleanSchema())
+  schemaChanged.value = current !== schemaSnapshot.value
+}, { deep: true })
 
 function showSuccess(msg) { snackbar.value = { show: true, message: msg, color: 'success' } }
 function showError(msg) { snackbar.value = { show: true, message: msg, color: 'error' } }
@@ -403,12 +422,18 @@ async function confirmDeleteObject() {
     showSuccess('Carte supprimée.')
     deleteObjectDialog.value = false
     await loadObjects()
+    await loadTemplate()
   } catch (e) {
-    showError('Erreur lors de la suppression.')
+    if (e.response?.status === 422) {
+      showError(e.response.data.message ?? 'Action refusée.', 6000)
+    } else {
+      showError('Erreur lors de la suppression.')
+    }
   } finally {
     deletingObject.value = false
   }
 }
+
 function resetSchema() {
   const restored = JSON.parse(schemaSnapshot.value)
   cardSchema.value = restored.map(f => ({
@@ -432,7 +457,6 @@ function slugifyKey(label) {
 
 function onLabelChange(field) {
   field.key = slugifyKey(field.label)
-  schemaChanged.value = true
 }
 
 function addField() {
@@ -444,12 +468,10 @@ function addField() {
     required: false,
     options: [],
   })
-  schemaChanged.value = true
 }
 
 function removeField(i) {
   cardSchema.value.splice(i, 1)
-  schemaChanged.value = true
 }
 
 function validateSchema() {
@@ -513,7 +535,12 @@ async function saveInfos() {
   } catch (e) {
     if (e.response?.status === 422) {
       errors.value = e.response.data.errors ?? {}
-      showError('Le serveur a rejeté certaines valeurs.')
+      const generalError = e.response.data.errors?.status?.[0]
+      if (generalError) {
+        showError(generalError, 6000)
+      } else {
+        showError('Le serveur a rejeté certaines valeurs.')
+      }
     } else {
       showError('Erreur lors de l\'enregistrement.')
     }

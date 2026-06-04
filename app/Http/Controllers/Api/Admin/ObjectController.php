@@ -47,6 +47,11 @@ class ObjectController extends Controller
 
     public function destroy(GameTemplate $template, GameObject $object)
     {
+        if ($template->status === GameTemplate::STATUS_PUBLISHED) {
+            return response()->json([
+                'message' => 'Ce template est publié. Repassez-le en brouillon pour modifier ses cartes.',
+            ], 422);
+        }
         if (!$template->objects()->where('objects.id', $object->id)->exists()) {
             return response()->json(['message' => 'Cet objet n\'appartient pas à ce template.'], 404);
         }

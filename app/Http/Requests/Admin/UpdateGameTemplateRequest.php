@@ -5,9 +5,12 @@ namespace App\Http\Requests\Admin;
 use App\Models\GameTemplate;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use App\Http\Requests\Admin\Concerns\RefusesWhenPublished;
 
 class UpdateGameTemplateRequest extends FormRequest
 {
+    use RefusesWhenPublished; 
+
     public function authorize(): bool
     {
         $user = $this->user();
@@ -46,6 +49,7 @@ class UpdateGameTemplateRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
+            $this->refuseIfTemplatePublished($validator);
             $template = $this->route('template');
             if (!$template instanceof \App\Models\GameTemplate) {
                 $template = \App\Models\GameTemplate::find($template);

@@ -4,12 +4,14 @@ namespace App\Http\Requests\Admin;
 
 use App\Http\Requests\Admin\Concerns\ValidatesCustomData;
 use App\Http\Requests\Admin\Concerns\ValidatesDeckMapping;
+use App\Http\Requests\Admin\Concerns\RefusesWhenPublished;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreObjectRequest extends FormRequest
 {
     use ValidatesCustomData;
     use ValidatesDeckMapping;
+    use RefusesWhenPublished;
 
     public function authorize(): bool
     {
@@ -43,6 +45,7 @@ class StoreObjectRequest extends FormRequest
         $validator->after(function ($validator) {
             $this->validateCustomData($validator);
             $this->validateDeckMapping($validator);
+            $this->refuseIfTemplatePublished($validator);
         });
     }
 }

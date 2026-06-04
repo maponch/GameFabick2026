@@ -96,11 +96,17 @@ class GameTemplate extends Model
         }
 
         if (in_array('cartes-classiques', $formatSlugs, true)) {
-            $withMapping = $this->objects->filter(
-                fn ($o) => is_array($o->existing_deck_mapping) && count($o->existing_deck_mapping) > 0
-            );
-            if ($withMapping->count() < 2) {
-                $missing[] = 'au moins 2 cartes avec un mapping pense-bête (format cartes classiques)';
+            $orphans = [];
+            foreach ($this->objects as $object) {
+                $mappingCount = is_array($object->existing_deck_mapping)
+                    ? count($object->existing_deck_mapping)
+                    : 0;
+                if ($mappingCount < $object->quantity) {
+                    $orphans[] = "\"{$object->name}\" ({$mappingCount}/{$object->quantity})";
+                }
+            }
+            if (!empty($orphans)) {
+                $missing[] = 'Correspondances cartes insuffisantes : ' . implode(', ', $orphans);
             }
         }
 
