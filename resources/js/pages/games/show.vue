@@ -43,7 +43,7 @@
             <v-divider class="my-4" />
 
             <h2 class="text-h6 mb-3">Cartes incluses</h2>
-            <v-row dense>
+            <v-row density="comfortable">
               <v-col v-for="object in template.objects" :key="object.id" cols="12" sm="6">
                 <v-card variant="tonal" :color="object.default_color">
                   <v-card-text>
@@ -79,7 +79,7 @@
               </div>
             </v-card>
 
-            <v-card v-if="template.supports_existing_deck" class="pa-3 mb-4 cursor-pointer"
+            <v-card v-if="supportsCartesClassiques" class="pa-3 mb-4 cursor-pointer"
               :variant="config.mode === 'existing_deck' ? 'tonal' : 'outlined'"
               :color="config.mode === 'existing_deck' ? 'primary' : ''" @click="config.mode = 'existing_deck'">
               <div class="d-flex align-center">
@@ -176,6 +176,9 @@ const config = ref({
 const canGenerate = computed(() => {
   return config.value.title.trim() && config.value.mode && config.value.players > 0
 })
+const supportsCartesClassiques = computed(() =>
+  template.value?.formats?.some(f => f.slug === 'cartes-classiques') ?? false
+)
 
 async function loadTemplate() {
   try {

@@ -42,7 +42,7 @@ class ProjectController extends Controller
             'players'     => 'required|integer|min:1',
         ]);
 
-        $template = GameTemplate::with('objects')->findOrFail($data['template_id']);
+        $template = GameTemplate::with(['objects', 'formats'])->findOrFail($data['template_id']);
 
         // Vérifie cohérence avec le template
         if ($data['players'] < $template->min_players || $data['players'] > $template->max_players) {
@@ -51,10 +51,13 @@ class ProjectController extends Controller
             ], 422);
         }
 
-        if ($data['mode'] === 'existing_deck' && !$template->supports_existing_deck) {
-            return response()->json([
-                'errors' => ['mode' => ['Ce jeu ne supporte pas le mode jeu de cartes existant.']]
-            ], 422);
+        if ($data['mode'] === 'existing_deck') {
+            $hasCartesClassiques = $template->formats()->where('slug', 'cartes-classiques')->exists();
+            if (!$hasCartesClassiques) {
+                return response()->json([
+                    'errors' => ['mode' => ['Ce jeu ne supporte pas le mode jeu de cartes existant.']]
+                ], 422);
+            }
         }
 
         // Crée le projet

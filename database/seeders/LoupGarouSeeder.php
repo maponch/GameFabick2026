@@ -25,7 +25,6 @@ class LoupGarouSeeder extends Seeder
             'max_players'            => 18,
             'duration_min'           => 30,
             'duration_max'           => 60,
-            'supports_existing_deck' => true,
             'status'                 => 'published',
         ]);
 

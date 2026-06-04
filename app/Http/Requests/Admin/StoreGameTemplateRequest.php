@@ -23,7 +23,6 @@ class StoreGameTemplateRequest extends FormRequest
             'max_players'            => ['required', 'integer', 'min:1', 'max:99', 'gte:min_players'],
             'duration_min'           => ['required', 'integer', 'min:1', 'max:600'],
             'duration_max'           => ['required', 'integer', 'min:1', 'max:600', 'gte:duration_min'],
-            'supports_existing_deck' => ['sometimes', 'boolean'],
             'format_ids'             => ['required', 'array', 'min:1'],
             'format_ids.*'           => ['integer', 'exists:game_formats,id'],
             'card_layout'            => ['nullable', 'string', 'exists:card_layouts,slug'],

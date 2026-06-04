@@ -53,7 +53,7 @@
               <v-chip size="x-small" prepend-icon="mdi-clock-outline">
                 {{ template.duration_min }}-{{ template.duration_max }} min
               </v-chip>
-              <v-chip v-if="template.supports_existing_deck" size="x-small" color="success" variant="tonal"
+              <v-chip v-if="supportsCartesClassiques(template)" size="x-small" color="success" variant="tonal"
                 prepend-icon="mdi-cards">
                 Jeu de cartes
               </v-chip>
@@ -116,6 +116,9 @@ const filteredTemplates = computed(() => {
 
 function goToTemplate(slug) {
   router.push(`/games/${slug}`)
+}
+function supportsCartesClassiques(template) {
+  return template.formats?.some(f => f.slug === 'cartes-classiques') ?? false
 }
 
 onMounted(async () => {

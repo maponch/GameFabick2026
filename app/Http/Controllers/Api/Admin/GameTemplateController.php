@@ -51,7 +51,6 @@ class GameTemplateController extends Controller
             'max_players'            => $template->max_players,
             'duration_min'           => $template->duration_min,
             'duration_max'           => $template->duration_max,
-            'supports_existing_deck' => $template->supports_existing_deck,
             'status'                 => $template->status,
             'card_schema'            => $template->card_schema,
             'card_layout'            => $template->card_layout ? [
@@ -81,7 +80,6 @@ class GameTemplateController extends Controller
         $data['slug'] = $this->uniqueSlug($data['name']);
         $data['created_by'] = $request->user()->id;
         $data['status'] = GameTemplate::STATUS_DRAFT;
-        $data['supports_existing_deck'] = $data['supports_existing_deck'] ?? false;
         $data['card_layout'] = $data['card_layout'] ?? null;
 
         if ($data['card_layout']) {

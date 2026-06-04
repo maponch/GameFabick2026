@@ -25,7 +25,6 @@ class TimesUpSeeder extends Seeder
             'max_players'            => 12,
             'duration_min'           => 30,
             'duration_max'           => 45,
-            'supports_existing_deck' => false,
             'status'                 => 'published',
         ]);
 

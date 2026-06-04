@@ -33,7 +33,6 @@ class UpdateGameTemplateRequest extends FormRequest
             'max_players'            => ['sometimes', 'required', 'integer', 'min:1', 'max:99', 'gte:min_players'],
             'duration_min'           => ['sometimes', 'required', 'integer', 'min:1', 'max:600'],
             'duration_max'           => ['sometimes', 'required', 'integer', 'min:1', 'max:600', 'gte:duration_min'],
-            'supports_existing_deck' => ['sometimes', 'required', 'boolean'],
             'status'                 => ['sometimes', 'required', Rule::in(GameTemplate::STATUSES)],
 
             'card_schema'                => ['sometimes', 'nullable', 'array'],
