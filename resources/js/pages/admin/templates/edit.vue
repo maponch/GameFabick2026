@@ -328,13 +328,30 @@ async function loadFormats() {
   }
 }
 
-async function loadTemplate() {
-  loading.value = true
+async function loadTemplate({ silent = false } = {}) {
+  if (!silent) loading.value = true
   try {
     const { data } = await api.get(`/admin/templates/${templateId}`)
-    template.value = data
-    publishable.value = data.publishable ?? null
+
+    if (template.value) {
+      Object.assign(template.value, data)
+    } else {
+      template.value = data
+    }
+
     objects.value = data.objects ?? []
+    publishable.value = data.publishable ?? null
+
+    form.value.name = data.name
+    form.value.description = data.description ?? ''
+    form.value.rules = data.rules ?? ''
+    form.value.type_id = data.type_id
+    form.value.format_ids = data.formats?.map(f => f.id) ?? []
+    form.value.min_players = data.min_players
+    form.value.max_players = data.max_players
+    form.value.duration_min = data.duration_min
+    form.value.duration_max = data.duration_max
+
     cardSchema.value = (data.card_schema ?? []).map(f => ({
       _uid: ++schemaUid,
       label: f.label ?? '',
@@ -345,17 +362,6 @@ async function loadTemplate() {
     }))
     schemaSnapshot.value = JSON.stringify(cleanSchema())
     schemaChanged.value = false
-    form.value = {
-      name: data.name,
-      description: data.description ?? '',
-      rules: data.rules ?? '',
-      type_id: data.type_id,
-      format_ids: data.formats?.map(f => f.id) ?? [],
-      min_players: data.min_players,
-      max_players: data.max_players,
-      duration_min: data.duration_min,
-      duration_max: data.duration_max,
-    }
   } catch (e) {
     if (e.response?.status === 404) {
       showError('Template introuvable.')
@@ -364,7 +370,7 @@ async function loadTemplate() {
       showError('Erreur lors du chargement.')
     }
   } finally {
-    loading.value = false
+    if (!silent) loading.value = false
   }
 }
 function openCreateObject() {
@@ -380,7 +386,7 @@ function openEditObject(obj) {
 async function onObjectSaved() {
   showSuccess('Carte enregistrée.')
   await loadObjects()
-  await loadTemplate()
+  await loadTemplate({ silent: true })
 }
 
 async function loadObjects() {
@@ -396,7 +402,7 @@ async function changeStatus(newStatus) {
   try {
     await api.patch(`/admin/templates/${templateId}/status`, { status: newStatus })
     showSuccess(`Statut mis à jour : ${statusConfig[newStatus]?.label ?? newStatus}.`)
-    await loadTemplate()
+    await loadTemplate({ silent: true })
   } catch (e) {
     if (e.response?.status === 422) {
       const msg = e.response.data.errors?.status?.[0] ?? 'Action refusée par le serveur.'
@@ -422,7 +428,7 @@ async function confirmDeleteObject() {
     showSuccess('Carte supprimée.')
     deleteObjectDialog.value = false
     await loadObjects()
-    await loadTemplate()
+    await loadTemplate({ silent: true })
   } catch (e) {
     if (e.response?.status === 422) {
       showError(e.response.data.message ?? 'Action refusée.', 6000)
@@ -531,7 +537,7 @@ async function saveInfos() {
   try {
     await api.patch(`/admin/templates/${templateId}`, form.value)
     showSuccess('Informations enregistrées.')
-    await loadTemplate()
+    await loadTemplate({ silent: true })
   } catch (e) {
     if (e.response?.status === 422) {
       errors.value = e.response.data.errors ?? {}
