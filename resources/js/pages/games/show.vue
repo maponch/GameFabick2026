@@ -95,17 +95,6 @@
             <v-text-field v-model="config.title" label="Nom de votre partie" variant="outlined"
               :error-messages="errors.title" class="mb-3" />
 
-            <!-- Nombre de joueurs -->
-            <v-slider v-model="config.players" :min="template.min_players" :max="template.max_players" :step="1"
-              thumb-label="always" show-ticks class="mb-3">
-              <template #prepend>
-                <v-icon>mdi-account-group</v-icon>
-              </template>
-              <template #append>
-                <span class="text-body-2">{{ config.players }} joueurs</span>
-              </template>
-            </v-slider>
-
             <v-btn block color="primary" size="large" :loading="generating" :disabled="!canGenerate"
               prepend-icon="mdi-cards-playing" @click="generateGame">
               Générer mon jeu
