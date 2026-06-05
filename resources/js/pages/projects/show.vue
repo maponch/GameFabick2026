@@ -43,12 +43,24 @@
             <v-row>
               <v-col v-for="object in project.objects" :key="object.id" cols="6" sm="4" md="3">
                 <v-card v-for="n in object.quantity" :key="`${object.id}-${n}`" class="mb-3 d-flex flex-column"
-                  :color="object.custom_color || object.default_color" height="200">
+                  :color="object.custom_color || object.default_color" height="220">
                   <v-card-title class="text-center text-white pb-1">
                     {{ object.custom_text || object.name }}
                   </v-card-title>
-                  <v-card-text class="text-center text-white flex-grow-1 d-flex align-center">
-                    <p class="text-caption mb-0">{{ object.description }}</p>
+
+                  <v-card-text
+                    class="text-center text-white flex-grow-1 d-flex flex-column align-center justify-center">
+                    <p v-if="object.description" class="text-caption mb-2">
+                      {{ object.description }}
+                    </p>
+
+                    <div v-if="objectCustomFields(object).length > 0" class="custom-fields w-100">
+                      <div v-for="field in objectCustomFields(object)" :key="field.key" class="custom-field">
+                        <span class="custom-field-label">{{ field.label }} :</span>
+                        <span class="custom-field-value">{{ formatFieldValue(field, object.custom_data?.[field.key])
+                          }}</span>
+                      </div>
+                    </div>
                   </v-card-text>
                 </v-card>
               </v-col>
@@ -180,6 +192,18 @@ async function loadProject() {
     loading.value = false
   }
 }
+function objectCustomFields(object) {
+  const schema = project.value?.template?.card_schema ?? []
+  return schema.filter(field => {
+    const val = object.custom_data?.[field.key]
+    return val !== null && val !== undefined && val !== ''
+  })
+}
+
+function formatFieldValue(field, value) {
+  if (field.type === 'boolean') return value ? 'Oui' : 'Non'
+  return value
+}
 
 async function deleteProject() {
   deleting.value = true
@@ -227,6 +251,30 @@ async function generatePdf() {
 onMounted(loadProject)
 </script>
 <style scoped>
+.custom-fields {
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  padding-top: 6px;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  text-align: left;
+}
+
+.custom-field {
+  margin-bottom: 2px;
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.custom-field-label {
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.custom-field-value {
+  text-align: right;
+}
+
 .mapping-chip.red {
   color: #c62828 !important;
   border-color: #c62828 !important;
