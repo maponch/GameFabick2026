@@ -1,14 +1,32 @@
 <template>
   <div class="card" :style="{ backgroundColor: card.color }">
-    <div class="card-title">{{ card.title }}</div>
-    <div v-if="card.description" class="card-description">{{ card.description }}</div>
-
-    <div v-if="customFields.length > 0" class="card-custom-fields">
-      <div v-for="field in customFields" :key="field.key" class="custom-field">
-        <span class="custom-field-label">{{ field.label }} :</span>
-        <span class="custom-field-value">{{ formatValue(field, card.customData?.[field.key]) }}</span>
+    <template v-if="isEmpty">
+      <div class="card-body card-body--centered">
+        <div class="card-title-centered">{{ card.title }}</div>
       </div>
-    </div>
+    </template>
+
+    <template v-else>
+      <div class="card-header">
+        <div class="card-title">{{ card.title }}</div>
+      </div>
+
+      <div class="card-body">
+        <div v-if="card.description" class="card-description">
+          {{ card.description }}
+        </div>
+
+        <div v-if="customFields.length > 0" class="card-fields-wrapper">
+          <div class="card-fields-separator" />
+          <div class="card-fields">
+            <div v-for="field in customFields" :key="field.key" class="card-field">
+              <span class="card-field-label">{{ field.label }}</span>
+              <span class="card-field-value">{{ formatValue(field, card.customData?.[field.key]) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -18,6 +36,9 @@ import { computed } from 'vue'
 const props = defineProps({
   card: { type: Object, required: true },
   schema: { type: Array, default: () => [] },
+})
+const isEmpty = computed(() => {
+  return !props.card.description && customFields.value.length === 0
 })
 
 const customFields = computed(() => {
@@ -36,44 +57,94 @@ function formatValue(field, value) {
 <style scoped>
 .card {
   height: 80mm;
-  border-radius: 4mm;
-  padding: 5mm;
+  border-radius: 3mm;
+  padding: 3mm;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
   color: white;
-  text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.card-header {
+  height: 16mm;
+  margin-top: -3mm;
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 2mm;
 }
 
 .card-title {
   font-size: 14pt;
   font-weight: bold;
-  margin-bottom: 3mm;
+  text-align: center;
+  line-height: 1.15;
+  word-break: break-word;
+}
+
+.card-body {
+  flex: 1;
+  background: white;
+  color: #000;
+  border-radius: 2.5mm;
+  padding: 4mm;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.card-body--centered {
+  align-items: center;
+  justify-content: center;
+  padding: 6mm;
+}
+
+.card-title-centered {
+  color: #000;
+  font-size: 16pt;
+  font-weight: bold;
+  text-align: center;
+  line-height: 1.2;
+  word-break: break-word;
 }
 
 .card-description {
   font-size: 9pt;
   line-height: 1.3;
-  margin-bottom: 3mm;
 }
 
-.card-custom-fields {
-  font-size: 8pt;
-  margin-top: 2mm;
-  text-align: left;
+.card-fields-wrapper {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3mm;
 }
 
-.custom-field {
-  margin-bottom: 1mm;
+.card-fields-separator {
+  height: 0.2mm;
+  background: #ddd;
 }
 
-.custom-field-label {
+.card-fields {
+  font-size: 9pt;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1mm 3mm;
+  align-content: end;
+}
+
+.card-field {
+  display: contents;
+}
+
+.card-field-label {
   font-weight: 600;
+  color: #555;
 }
 
-.custom-field-value {
-  margin-left: 2mm;
+.card-field-value {
+  text-align: right;
+  word-break: break-word;
 }
 </style>
