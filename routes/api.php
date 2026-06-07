@@ -13,6 +13,8 @@ use App\Http\Controllers\Api\Game\ProjectController;
 use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\TwoFactorController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\User\ProjectController as UserProjectController;
+use App\Http\Controllers\Api\User\ProjectObjectController as UserProjectObjectController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -50,6 +52,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/projects/{project}',      [ProjectController::class, 'show']);
     Route::delete('/projects/{project}',   [ProjectController::class, 'destroy']);
     Route::post('/projects/find-similar', [ProjectController::class, 'findSimilar']);
+    Route::match(['put', 'patch'], '/projects/{project}', [UserProjectController::class, 'update']);
+
+    Route::get('/projects/{project}/objects', [UserProjectObjectController::class, 'index']);
+    Route::post('/projects/{project}/objects', [UserProjectObjectController::class, 'store']);
+    Route::match(['put', 'patch'], '/projects/{project}/objects/{object}', [UserProjectObjectController::class, 'update']);
+    Route::delete('/projects/{project}/objects/{object}', [UserProjectObjectController::class, 'destroy']);
 });
 
 Route::post('/2fa/verify', [TwoFactorController::class, 'verify']);
