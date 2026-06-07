@@ -81,7 +81,15 @@ class ProjectController extends Controller
         $project->formats()->sync($template->formats->pluck('id')->all());
         // Attache les objets du template au projet (avec leurs valeurs par défaut)
         foreach ($template->objects as $object) {
-            $project->objects()->attach($object->id);
+            $project->objects()->create([
+                'name'                  => $object->name,
+                'description'           => $object->description,
+                'quantity'              => $object->quantity,
+                'default_color'         => $object->default_color,
+                'default_image_path'    => $object->default_image_path,
+                'existing_deck_mapping' => $object->existing_deck_mapping,
+                'custom_data'           => $object->custom_data,
+            ]);
         }
 
         return response()->json([
@@ -120,7 +128,7 @@ class ProjectController extends Controller
                     'name' => \App\Models\CardLayout::where('slug', $project->template->card_layout)->value('name'),
                 ] : null,
             ] : null,
-            'objects'      => $project->objects->map(fn($o) => [
+            'objects' => $project->objects->map(fn ($o) => [
                 'id'                    => $o->id,
                 'name'                  => $o->name,
                 'description'           => $o->description,
@@ -128,9 +136,6 @@ class ProjectController extends Controller
                 'default_color'         => $o->default_color,
                 'default_image_path'    => $o->default_image_path,
                 'existing_deck_mapping' => $o->existing_deck_mapping,
-                'custom_image_id'       => $o->pivot->custom_image_id,
-                'custom_text'           => $o->pivot->custom_text,
-                'custom_color'          => $o->pivot->custom_color,
                 'custom_data'           => $o->custom_data,
             ]),
             'created_at'   => $project->created_at,

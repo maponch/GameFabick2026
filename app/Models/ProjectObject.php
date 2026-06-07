@@ -4,11 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class GameObject extends Model
+class ProjectObject extends Model
 {
-    protected $table = 'objects';
+    protected $table = 'project_objects';
 
     protected $fillable = [
+        'project_id',
         'name',
         'description',
         'quantity',
@@ -20,12 +21,11 @@ class GameObject extends Model
 
     protected $casts = [
         'existing_deck_mapping' => 'array',
-        'custom_data' => 'array',
+        'custom_data'           => 'array',
     ];
 
-    public function templates()
+    public function project()
     {
-        return $this->belongsToMany(GameTemplate::class, 'game_template_objects', 'object_id', 'game_template_id')
-                    ->withTimestamps();
+        return $this->belongsTo(Project::class);
     }
 }

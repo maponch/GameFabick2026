@@ -56,11 +56,9 @@ class ObjectController extends Controller
             return response()->json(['message' => 'Cet objet n\'appartient pas à ce template.'], 404);
         }
 
-        $usedInProjects = $object->projects()->exists();
-
         $template->objects()->detach($object->id);
 
-        if (!$usedInProjects && $object->templates()->count() === 0) {
+        if ($object->templates()->count() === 0) {
             $object->delete();
         }
 

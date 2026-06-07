@@ -40,7 +40,7 @@ const allCards = computed(() => {
   for (const object of props.project.objects) {
     for (let i = 0; i < object.quantity; i++) {
       cards.push({
-        title: object.custom_text || object.name,
+        title: object.name,
         description: object.description,
         color: object.custom_color || object.default_color || '#666',
         customData: object.custom_data ?? {},

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\GameFormat;
+use App\Models\ProjectObject;
 use Illuminate\Database\Eloquent\Model;
 
 class Project extends Model
@@ -45,14 +46,7 @@ class Project extends Model
 
     public function objects()
     {
-        return $this->belongsToMany(
-            GameObject::class,
-            'object_project',
-            'project_id',  
-            'object_id'      
-        )
-        ->withPivot(['custom_image_id', 'custom_text', 'custom_color'])
-        ->withTimestamps();
+        return $this->hasMany(ProjectObject::class);
     }
     public function assets()
     {

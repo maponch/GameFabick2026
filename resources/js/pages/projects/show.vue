@@ -43,7 +43,7 @@
             <v-row>
               <v-col v-for="object in project.objects" :key="object.id" cols="6" sm="4" md="3">
                 <v-card v-for="n in object.quantity" :key="`${object.id}-${n}`" class="mb-3 d-flex flex-column"
-                  :color="object.custom_color || object.default_color" height="220">
+                  :color="object.default_color" height="220">
                   <v-card-title class="text-center text-white pb-1">
                     {{ object.custom_text || object.name }}
                   </v-card-title>
