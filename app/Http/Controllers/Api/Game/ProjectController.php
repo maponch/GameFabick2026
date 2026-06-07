@@ -18,11 +18,12 @@ class ProjectController extends Controller
             ->get()
             ->map(fn($p) => [
                 'id'           => $p->id,
-                'title'        => $p->title,
+                'name'         => $p->name,
                 'description'  => $p->description,
                 'mode'         => $p->mode,
                 'status'       => $p->status,
-                'duration'     => $p->duration,
+                'duration_min' => $p->duration_min,
+                'duration_max' => $p->duration_max,
                 'min_players'  => $p->min_players,
                 'max_players'  => $p->max_players,
                 'template'     => $p->template?->name,
@@ -37,7 +38,7 @@ class ProjectController extends Controller
     {
         $data = $request->validate([
             'template_id' => 'required|exists:game_templates,id',
-            'title'       => 'required|string|max:191',
+            'name'        => 'required|string|max:191',
             'mode'        => 'required|in:printable,existing_deck',
             'players'     => 'required|integer|min:1',
         ]);
@@ -65,16 +66,19 @@ class ProjectController extends Controller
             'user_id'      => $request->user()->id,
             'type_id'      => $template->type_id,
             'template_id'  => $template->id,
-            'title'        => $data['title'],
+            'name'         => $data['name'],
             'description'  => $template->description,
+            'rules'        => $template->rules,
+            'card_schema'  => $template->card_schema,
+            'card_layout'  => $template->card_layout,
             'mode'         => $data['mode'],
-            'duration'     => $template->duration_min,
+            'duration_min' => $template->duration_min,
+            'duration_max' => $template->duration_max,
             'min_players'  => $template->min_players,
             'max_players'  => $template->max_players,
             'status'       => 'brouillon',
-            'is_published' => false,
         ]);
-
+        $project->formats()->sync($template->formats->pluck('id')->all());
         // Attache les objets du template au projet (avec leurs valeurs par défaut)
         foreach ($template->objects as $object) {
             $project->objects()->attach($object->id);
@@ -97,14 +101,14 @@ class ProjectController extends Controller
 
         return response()->json([
             'id'           => $project->id,
-            'title'        => $project->title,
+            'name'         => $project->name,
             'description'  => $project->description,
             'mode'         => $project->mode,
             'status'       => $project->status,
-            'duration'     => $project->duration,
+            'duration_min' => $project->duration_min,
+            'duration_max' => $project->duration_max,
             'min_players'  => $project->min_players,
             'max_players'  => $project->max_players,
-            'is_published' => $project->is_published,
             'template'     => $project->template ? [
                 'id'          => $project->template->id,
                 'name'        => $project->template->name,
@@ -143,7 +147,7 @@ class ProjectController extends Controller
             ->where('template_id', $data['template_id'])
             ->where('mode', $data['mode'])
             ->orderBy('created_at', 'desc')
-            ->get(['id', 'title', 'created_at']);
+            ->get(['id', 'name', 'created_at']);
 
         return response()->json($similar);
     }

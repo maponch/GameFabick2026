@@ -2,7 +2,7 @@
   <div ref="printArea" class="printable-container">
     <div v-for="(pageCards, pageIndex) in pages" :key="pageIndex" class="page">
       <div v-if="pageIndex === 0" class="printable-header">
-        <h1>{{ project.title }}</h1>
+        <h1>{{ project.name }}</h1>
         <p>{{ project.template?.name }} — {{ project.min_players }} à {{ project.max_players }} joueurs</p>
       </div>
       <div class="cards-grid">

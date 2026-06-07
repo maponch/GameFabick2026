@@ -93,7 +93,7 @@
 
             <!-- Nom de la partie -->
             <v-text-field v-model="config.title" label="Nom de votre partie" variant="outlined"
-              :error-messages="errors.title" class="mb-3" />
+              :error-messages="errors.name" class="mb-3" />
 
             <v-btn block color="primary" size="large" :loading="generating" :disabled="!canGenerate"
               prepend-icon="mdi-cards-playing" @click="generateGame">
@@ -186,7 +186,7 @@ async function generateGame() {
   errors.value = {}
 
   if (!config.value.title.trim()) {
-    errors.value.title = ['Le nom est requis.']
+    errors.value.name = ['Le nom est requis.']
     return
   }
 
@@ -215,7 +215,7 @@ async function createProject() {
   try {
     const { data } = await api.post('/projects', {
       template_id: template.value.id,
-      title: config.value.title,
+      name: config.value.title,
       mode: config.value.mode,
       players: config.value.players,
     })

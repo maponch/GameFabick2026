@@ -12,7 +12,7 @@
     <div v-else-if="project">
 
       <div class="d-flex align-center justify-space-between mb-2 flex-wrap ga-2">
-        <h1 class="text-h4">{{ project.title }}</h1>
+        <h1 class="text-h4">{{ project.name }}</h1>
         <v-chip :color="project.mode === 'printable' ? 'primary' : 'success'" prepend-icon="mdi-cards">
           {{ project.mode === 'printable' ? 'Mode impression' : 'Jeu de cartes classique' }}
         </v-chip>
@@ -139,7 +139,7 @@
       <v-card class="pa-4">
         <v-card-title>Supprimer le projet</v-card-title>
         <v-card-text>
-          Voulez-vous vraiment supprimer <strong>{{ project?.title }}</strong> ?
+          Voulez-vous vraiment supprimer <strong>{{ project?.name }}</strong> ?
           Cette action est irréversible.
         </v-card-text>
         <v-card-actions class="justify-end">
@@ -228,7 +228,7 @@ async function generatePdf() {
 
     const options = {
       margin: 0,
-      filename: `${project.value.title.replace(/[^a-z0-9]/gi, '_')}.pdf`,
+      filename: `${project.value.name.replace(/[^a-z0-9]/gi, '_')}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },

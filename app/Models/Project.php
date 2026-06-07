@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\GameFormat;
 use Illuminate\Database\Eloquent\Model;
 
 class Project extends Model
@@ -10,18 +11,21 @@ class Project extends Model
         'user_id',
         'type_id',
         'template_id',
-        'title',
+        'name',
         'description',
+        'rules',
+        'card_schema',
+        'card_layout',
         'mode',
-        'duration',
+        'duration_min',
+        'duration_max',
         'min_players',
         'max_players',
         'status',
-        'is_published',
     ];
 
     protected $casts = [
-        'is_published' => 'boolean',
+        'card_schema' => 'array',
     ];
 
     public function user()
@@ -58,5 +62,11 @@ class Project extends Model
     public function playHistory()
     {
         return $this->hasMany(PlayHistory::class);
+    }
+        public function formats()
+    {
+        return $this->belongsToMany(GameFormat::class, 'project_format')
+                    ->withTimestamps()
+                    ->withTrashed();
     }
 }
