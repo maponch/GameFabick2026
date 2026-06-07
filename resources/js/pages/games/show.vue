@@ -117,7 +117,7 @@
           </p>
 
           <v-list>
-            <v-list-item v-for="p in similarProjects" :key="p.id" :title="p.title" :subtitle="formatDate(p.created_at)"
+            <v-list-item v-for="p in similarProjects" :key="p.id" :title="p.name" :subtitle="formatDate(p.created_at)"
               prepend-icon="mdi-cards-playing" @click="goToProject(p.id)" />
           </v-list>
         </v-card-text>

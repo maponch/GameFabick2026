@@ -79,7 +79,6 @@ class ProjectController extends Controller
             'status'       => 'brouillon',
         ]);
         $project->formats()->sync($template->formats->pluck('id')->all());
-        // Attache les objets du template au projet (avec leurs valeurs par défaut)
         foreach ($template->objects as $object) {
             $project->objects()->create([
                 'name'                  => $object->name,
@@ -128,6 +127,11 @@ class ProjectController extends Controller
                     'name' => \App\Models\CardLayout::where('slug', $project->template->card_layout)->value('name'),
                 ] : null,
             ] : null,
+            'based_on'     => $project->template_id ? [
+                    'id'   => $project->template->id,
+                    'name' => $project->template->name,
+                    'slug' => $project->template->slug,
+                ] : null,
             'objects' => $project->objects->map(fn ($o) => [
                 'id'                    => $o->id,
                 'name'                  => $o->name,
