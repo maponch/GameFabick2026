@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use App\Http\Requests\User\UpdateProjectRequest;
 use App\Models\Project;
 
@@ -23,6 +24,23 @@ class ProjectController extends Controller
         return response()->json([
             'id'      => $project->id,
             'message' => 'Projet mis à jour.',
+        ]);
+    }
+    public function changeStatus(Request $request, Project $project)
+    {
+        if ($project->user_id !== $request->user()?->id) {
+            return response()->json(['message' => 'Action non autorisée.'], 403);
+        }
+
+        $data = $request->validate([
+            'status' => ['required', 'in:draft,published,archived'],
+        ]);
+
+        $project->update(['status' => $data['status']]);
+
+        return response()->json([
+            'id'     => $project->id,
+            'status' => $project->status,
         ]);
     }
 }

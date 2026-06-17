@@ -18,9 +18,15 @@
     </div>
 
     <v-alert v-if="project?.status === 'published'" type="warning" variant="tonal" class="mb-4" prominent>
-      <div>
-        <strong>Ce projet est publié.</strong>
-        Repassez-le en brouillon pour le modifier (fonctionnalité à venir).
+      <div class="d-flex align-center justify-space-between flex-wrap ga-2">
+        <div>
+          <strong>Ce projet est publié.</strong>
+          Pour le modifier, repassez-le en brouillon.
+          Les modifications seront ensuite sauvegardées normalement.
+        </div>
+        <v-btn color="warning" variant="flat" :loading="changingStatus" @click="changeStatus('draft')">
+          Repasser en brouillon
+        </v-btn>
       </div>
     </v-alert>
 
@@ -142,6 +148,58 @@
             </div>
           </v-expansion-panel-text>
         </v-expansion-panel>
+        <v-expansion-panel value="publish">
+          <v-expansion-panel-title>
+            Publication
+            <template #actions>
+              <v-chip v-if="publishable" size="small" :color="publishable.ready ? 'success' : 'warning'" class="mr-2">
+                {{ publishable.ready ? 'Complet' : 'Incomplet' }}
+              </v-chip>
+            </template>
+          </v-expansion-panel-title>
+          <v-expansion-panel-text>
+            <p class="text-medium-emphasis text-body-2 mb-3">
+              Statut actuel : <strong>{{ statusConfig[project.status]?.label }}</strong>
+            </p>
+
+            <v-alert v-if="publishable" :type="publishable.ready ? 'success' : 'info'" variant="tonal" density="compact"
+              class="mb-3">
+              <div class="mb-1">
+                <strong>{{ publishable.ready ? 'Projet complet' : 'Projet incomplet' }}</strong>
+              </div>
+              <div v-if="publishable.ready" class="text-body-2">
+                Votre projet remplit toutes les conditions de qualité. Il apparaîtra avec un label "Complet" pour les
+                autres utilisateurs.
+              </div>
+              <div v-else class="text-body-2">
+                Vous pouvez publier votre projet quand même, mais il sera signalé comme incomplet.
+                Conditions manquantes pour l'étiquette "Complet" :
+                <ul class="ms-4 mt-1">
+                  <li v-for="(item, i) in publishable.missing" :key="i">{{ item }}</li>
+                </ul>
+              </div>
+            </v-alert>
+
+            <div class="d-flex ga-2 flex-wrap">
+              <v-btn v-if="project.status === 'draft'" color="success" :loading="changingStatus"
+                @click="changeStatus('published')">
+                Publier
+              </v-btn>
+              <v-btn v-if="project.status === 'published'" color="grey" :loading="changingStatus"
+                @click="changeStatus('draft')">
+                Repasser en brouillon
+              </v-btn>
+              <v-btn v-if="project.status !== 'archived'" color="warning" variant="outlined" :loading="changingStatus"
+                @click="changeStatus('archived')">
+                Archiver
+              </v-btn>
+              <v-btn v-if="project.status === 'archived'" color="primary" :loading="changingStatus"
+                @click="changeStatus('draft')">
+                Désarchiver (brouillon)
+              </v-btn>
+            </div>
+          </v-expansion-panel-text>
+        </v-expansion-panel>
       </v-expansion-panels>
     </template>
 
@@ -175,6 +233,7 @@ import { api } from '../../api'
 import { useRouter, useRoute } from 'vue-router'
 import TemplateForm from '../../components/admin/templates/TemplateForm.vue'
 import ObjectModal from '../../components/admin/templates/ObjectModal.vue'
+import { PROJECT_STATUS } from '../../i18n/status.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -209,10 +268,10 @@ const isLocked = computed(() => project.value?.status === 'published')
 
 let schemaUid = 0
 
-const statusConfig = {
-  brouillon: { label: 'Brouillon', color: 'grey' },
-  published: { label: 'Publié', color: 'success' },
-}
+const statusConfig = PROJECT_STATUS
+const changingStatus = ref(false)
+
+const publishable = ref(null)
 
 const form = ref({
   name: '',
@@ -260,7 +319,7 @@ function showError(msg, timeout = 3000) { snackbar.value = { show: true, message
 async function loadTypes() {
   typesLoading.value = true
   try {
-    const { data } = await api.get('/admin/types')
+    const { data } = await api.get('/types')
     types.value = data
   } catch (e) {
     showError('Erreur lors du chargement des types.')
@@ -272,7 +331,7 @@ async function loadTypes() {
 async function loadFormats() {
   formatsLoading.value = true
   try {
-    const { data } = await api.get('/admin/formats')
+    const { data } = await api.get('/formats')
     formats.value = data
   } catch (e) {
     showError('Erreur lors du chargement des formats.')
@@ -293,6 +352,7 @@ async function loadProject({ silent = false } = {}) {
     }
 
     objects.value = data.objects ?? []
+    publishable.value = data.publishable ?? null
 
     form.value.name = data.name
     form.value.description = data.description ?? ''
@@ -441,6 +501,7 @@ async function saveSchema() {
   try {
     await api.patch(`/projects/${projectId}`, { card_schema: cleanSchema() })
     showSuccess('Champs personnalisés enregistrés.')
+    await loadProject({ silent: true })
     schemaSnapshot.value = JSON.stringify(cleanSchema())
     schemaChanged.value = false
   } catch (e) {
@@ -476,6 +537,23 @@ async function saveInfos() {
     }
   } finally {
     savingInfos.value = false
+  }
+}
+async function changeStatus(newStatus) {
+  changingStatus.value = true
+  try {
+    await api.patch(`/projects/${projectId}/status`, { status: newStatus })
+    showSuccess(`Statut mis à jour : ${statusConfig[newStatus]?.label ?? newStatus}.`)
+    await loadProject({ silent: true })
+  } catch (e) {
+    if (e.response?.status === 422) {
+      const msg = e.response.data.errors?.status?.[0] ?? 'Action refusée par le serveur.'
+      showError(msg, 6000)
+    } else {
+      showError('Erreur lors du changement de statut.')
+    }
+  } finally {
+    changingStatus.value = false
   }
 }
 

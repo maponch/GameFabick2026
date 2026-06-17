@@ -515,6 +515,7 @@ async function saveSchema() {
     showSuccess('Champs personnalisés enregistrés.')
     schemaSnapshot.value = JSON.stringify(cleanSchema())
     schemaChanged.value = false
+    await loadTemplate({ silent: true })
   } catch (e) {
     if (e.response?.status === 422) {
       showError('Le serveur a rejeté le schéma.')

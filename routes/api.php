@@ -51,6 +51,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/projects',               [ProjectController::class, 'store']);
     Route::get('/projects/{project}',      [ProjectController::class, 'show']);
     Route::delete('/projects/{project}',   [ProjectController::class, 'destroy']);
+    Route::patch('/projects/{project}/status', [UserProjectController::class, 'changeStatus']);
     Route::post('/projects/find-similar', [ProjectController::class, 'findSimilar']);
     Route::match(['put', 'patch'], '/projects/{project}', [UserProjectController::class, 'update']);
 
@@ -58,6 +59,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/projects/{project}/objects', [UserProjectObjectController::class, 'store']);
     Route::match(['put', 'patch'], '/projects/{project}/objects/{object}', [UserProjectObjectController::class, 'update']);
     Route::delete('/projects/{project}/objects/{object}', [UserProjectObjectController::class, 'destroy']);
+
+    Route::get('/types', [\App\Http\Controllers\Api\Admin\Reference\TypeController::class, 'index']);
+    Route::get('/formats', [\App\Http\Controllers\Api\Admin\Reference\GameFormatController::class, 'index']);
 });
 
 Route::post('/2fa/verify', [TwoFactorController::class, 'verify']);
@@ -67,7 +71,7 @@ Route::post('/forgot-password', [PasswordResetController::class, 'sendOtp']);
 Route::post('/verify-otp', [PasswordResetController::class, 'verifyOtp']);
 Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
 
-//restauration du comppte
+//restauration du compte
 Route::post('/user/restore', [UserController::class, 'restore']);
 
 

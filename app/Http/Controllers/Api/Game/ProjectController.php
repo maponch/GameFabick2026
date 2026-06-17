@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 
 class ProjectController extends Controller
 {
-    // Liste des projets de l'utilisateur connecté
     public function index(Request $request)
     {
         $projects = $request->user()->projects()
@@ -76,7 +75,7 @@ class ProjectController extends Controller
             'duration_max' => $template->duration_max,
             'min_players'  => $template->min_players,
             'max_players'  => $template->max_players,
-            'status'       => 'brouillon',
+            'status'       => Project::STATUS_DRAFT,
         ]);
         $project->formats()->sync($template->formats->pluck('id')->all());
         foreach ($template->objects as $object) {
@@ -121,6 +120,7 @@ class ProjectController extends Controller
                 'slug' => $f->slug,
             ]),
             'description'  => $project->description,
+            'rules'        => $project->rules,
             'mode'         => $project->mode,
             'status'       => $project->status,
             'duration_min' => $project->duration_min,
@@ -149,6 +149,7 @@ class ProjectController extends Controller
                 'custom_data'           => $o->custom_data,
             ]),
             'created_at'   => $project->created_at,
+            'publishable'  => $project->publishabilityReport(),
         ]);
     }
     public function findSimilar(Request $request)
