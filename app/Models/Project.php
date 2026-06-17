@@ -10,7 +10,7 @@ use App\Models\Concerns\Publishable;
 class Project extends Model
 {
     use Publishable;
-    
+
     public const STATUS_DRAFT     = 'draft';
     public const STATUS_PUBLISHED = 'published';
     public const STATUS_ARCHIVED  = 'archived';
@@ -70,10 +70,14 @@ class Project extends Model
     {
         return $this->hasMany(PlayHistory::class);
     }
-        public function formats()
+    public function formats()
     {
         return $this->belongsToMany(GameFormat::class, 'project_format')
                     ->withTimestamps()
                     ->withTrashed();
+    }
+    public function moderationActions()
+    {
+        return $this->hasMany(ModerationAction::class);
     }
 }

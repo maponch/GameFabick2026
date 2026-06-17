@@ -56,6 +56,11 @@ const routes = [
     meta: { requiresAuth: true, requiresAdmin: true }
   },
   {
+    path: '/admin/projects',
+    component: () => import('../pages/admin/projects/index.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
     path: '/games',
     component: () => import('../pages/games/index.vue'),
     meta: { requiresAuth: true }

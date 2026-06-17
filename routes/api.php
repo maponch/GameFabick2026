@@ -113,4 +113,7 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::post('/formats/{id}/restore', [AdminGameFormatController::class, 'restore']);
 
     Route::get('/card-layouts', [AdminCardLayoutController::class, 'index']);
+
+    Route::get('/projects', [\App\Http\Controllers\Api\Admin\ModerationController::class, 'index']);
+Route::post('/projects/{project}/moderate', [\App\Http\Controllers\Api\Admin\ModerationController::class, 'moderate']);
 });

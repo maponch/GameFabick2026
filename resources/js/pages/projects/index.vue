@@ -50,12 +50,26 @@
       <template #item.actions="{ item }">
         <v-btn icon="mdi-eye" size="small" variant="text" :to="`/projects/${item.id}`" />
         <v-btn icon="mdi-pencil" size="small" variant="text" :to="`/projects/${item.id}/edit`" />
+        <v-btn icon="mdi-delete" size="small" variant="text" color="error" @click="askDelete(item)" />
       </template>
     </v-data-table>
 
     <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000">
       {{ snackbar.message }}
     </v-snackbar>
+    <v-dialog v-model="deleteDialog" max-width="440">
+      <v-card>
+        <v-card-title>Supprimer le projet</v-card-title>
+        <v-card-text>
+          Voulez-vous vraiment supprimer <strong>{{ projectToDelete?.name }}</strong> ?
+          Cette action est irréversible.
+        </v-card-text>
+        <v-card-actions class="justify-end">
+          <v-btn variant="text" @click="deleteDialog = false">Annuler</v-btn>
+          <v-btn color="error" :loading="deleting" @click="confirmDelete">Supprimer</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -70,6 +84,10 @@ const search = ref('')
 const statusFilter = ref(null)
 const completenessFilter = ref(null)
 const snackbar = ref({ show: false, message: '', color: 'success' })
+
+const deleteDialog = ref(false)
+const projectToDelete = ref(null)
+const deleting = ref(false)
 
 const statusConfig = PROJECT_STATUS
 
@@ -148,6 +166,23 @@ async function loadProjects() {
     loading.value = false
   }
 }
-
+function askDelete(item) {
+  projectToDelete.value = item
+  deleteDialog.value = true
+}
+async function confirmDelete() {
+  if (!projectToDelete.value) return
+  deleting.value = true
+  try {
+    await api.delete(`/projects/${projectToDelete.value.id}`)
+    snackbar.value = { show: true, message: 'Projet supprimé.', color: 'success' }
+    deleteDialog.value = false
+    await loadProjects()
+  } catch (e) {
+    snackbar.value = { show: true, message: 'Erreur lors de la suppression.', color: 'error' }
+  } finally {
+    deleting.value = false
+  }
+}
 onMounted(loadProjects)
 </script>
