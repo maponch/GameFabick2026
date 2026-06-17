@@ -12,8 +12,8 @@ class ProjectController extends Controller
     public function index(Request $request)
     {
         $projects = $request->user()->projects()
-            ->with(['template', 'type'])
-            ->orderBy('created_at', 'desc')
+            ->with(['template', 'type', 'formats', 'objects'])
+            ->orderBy('updated_at', 'desc')
             ->get()
             ->map(fn($p) => [
                 'id'           => $p->id,
@@ -25,8 +25,11 @@ class ProjectController extends Controller
                 'duration_max' => $p->duration_max,
                 'min_players'  => $p->min_players,
                 'max_players'  => $p->max_players,
+                'type'         => $p->type?->name,
                 'template'     => $p->template?->name,
+                'publishable'  => $p->publishabilityReport(),
                 'created_at'   => $p->created_at,
+                'updated_at'   => $p->updated_at,
             ]);
 
         return response()->json($projects);

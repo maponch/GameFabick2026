@@ -75,6 +75,11 @@ const routes = [
     component: () => import('../pages/projects/edit.vue'),
     meta: { requiresAuth: true }
   },
+  {
+    path: '/projects',
+    component: () => import('../pages/projects/index.vue'),
+    meta: { requiresAuth: true }
+  },
   { path: '/:pathMatch(.*)*', redirect: '/' } // 404 → accueil
 ]
 
