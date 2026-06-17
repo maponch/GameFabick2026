@@ -1,28 +1,26 @@
 <template>
   <v-container>
-    <div class="d-flex align-center ga-3 mb-6">
+    <div class="d-flex align-center ga-3 mb-6 flex-wrap">
       <v-btn icon="mdi-arrow-left" variant="text" @click="goBack" />
-      <h1 class="text-h4">Édition du template</h1>
-      <v-chip v-if="template" :color="statusConfig[template.status]?.color" label class="ml-2">
-        {{ statusConfig[template.status]?.label ?? template.status }}
+      <h1 class="text-h4">Édition du projet</h1>
+      <v-chip v-if="project" :color="statusConfig[project.status]?.color" label class="ml-2">
+        {{ statusConfig[project.status]?.label ?? project.status }}
       </v-chip>
-      <v-chip v-if="template?.card_layout" color="info" label class="ml-2">
-        Modèle : {{ template.card_layout.name}}
+      <v-chip v-if="project?.card_layout" color="info" label class="ml-2">
+        Modèle : {{ project.card_layout.name }}
       </v-chip>
       <v-chip v-else color="grey" label class="ml-2">
         Schéma libre
       </v-chip>
+      <v-chip v-if="project?.based_on" color="primary" label variant="tonal" class="ml-2">
+        Basé sur : {{ project.based_on.name }}
+      </v-chip>
     </div>
-    <v-alert v-if="template?.status === 'published'" type="warning" variant="tonal" class="mb-4" prominent>
-      <div class="d-flex align-center justify-space-between flex-wrap ga-2">
-        <div>
-          <strong>Ce template est publié.</strong>
-          Pour le modifier, repassez-le en brouillon.
-          Les modifications seront ensuite sauvegardées normalement.
-        </div>
-        <v-btn color="warning" variant="flat" :loading="changingStatus" @click="changeStatus('draft')">
-          Repasser en brouillon
-        </v-btn>
+
+    <v-alert v-if="project?.status === 'published'" type="warning" variant="tonal" class="mb-4" prominent>
+      <div>
+        <strong>Ce projet est publié.</strong>
+        Repassez-le en brouillon pour le modifier (fonctionnalité à venir).
       </div>
     </v-alert>
 
@@ -30,13 +28,13 @@
       <v-progress-circular indeterminate color="primary" />
     </div>
 
-    <template v-else-if="template">
+    <template v-else-if="project">
       <v-expansion-panels v-model="openPanels" multiple>
         <v-expansion-panel value="infos">
           <v-expansion-panel-title>Informations générales</v-expansion-panel-title>
           <v-expansion-panel-text>
             <TemplateForm ref="formRef" v-model="form" :types="types" :types-loading="typesLoading" :formats="formats"
-              :formats-loading="formatsLoading" :server-errors="errors" :readonly="isLocked"/>
+              :formats-loading="formatsLoading" :server-errors="errors" :readonly="isLocked" context="user" />
             <div class="d-flex justify-end mt-2">
               <v-btn color="primary" :loading="savingInfos" @click="saveInfos" :disabled="isLocked">
                 Enregistrer les informations
@@ -60,7 +58,7 @@
             </div>
 
             <p v-if="objects.length === 0" class="text-medium-emphasis text-body-2">
-              Aucune carte pour l'instant. Ajoutez-en au moins une avant de publier le jeu.
+              Aucune carte dans votre projet.
             </p>
 
             <v-list v-else>
@@ -76,15 +74,17 @@
                 </v-list-item-subtitle>
 
                 <template #append>
-                  <v-btn icon="mdi-pencil" size="small" variant="text" @click="openEditObject(obj)" :disabled="isLocked" />
-                  <v-btn icon="mdi-delete" size="small" variant="text" color="error" @click="askDeleteObject(obj)" :disabled="isLocked" />
+                  <v-btn icon="mdi-pencil" size="small" variant="text" @click="openEditObject(obj)"
+                    :disabled="isLocked" />
+                  <v-btn icon="mdi-delete" size="small" variant="text" color="error" @click="askDeleteObject(obj)"
+                    :disabled="isLocked" />
                 </template>
               </v-list-item>
             </v-list>
           </v-expansion-panel-text>
         </v-expansion-panel>
 
-        <v-expansion-panel v-if="!template.card_layout" value="schema">
+        <v-expansion-panel v-if="!project.card_layout" value="schema">
           <v-expansion-panel-title>
             Champs personnalisés
             <template #actions>
@@ -94,12 +94,12 @@
           <v-expansion-panel-text>
             <p class="text-medium-emphasis text-body-2 mb-3">
               Définissez des champs additionnels qui apparaîtront sur chaque carte
-              (en plus du nom, de la description et de la couleur). Par exemple : un camp,
-              une catégorie, une difficulté.
+              (en plus du nom, de la description et de la couleur).
             </p>
 
             <div class="d-flex justify-end mb-3">
-              <v-btn size="small" prepend-icon="mdi-plus" @click="addField" :disabled="isLocked">Ajouter un champ</v-btn>
+              <v-btn size="small" prepend-icon="mdi-plus" @click="addField" :disabled="isLocked">Ajouter un
+                champ</v-btn>
             </div>
 
             <p v-if="cardSchema.length === 0" class="text-medium-emphasis text-body-2">
@@ -142,58 +142,10 @@
             </div>
           </v-expansion-panel-text>
         </v-expansion-panel>
-
-        <v-expansion-panel value="publish">
-          <v-expansion-panel-title>
-            Publication
-            <template #actions>
-              <v-chip v-if="publishable" size="small" :color="publishable.ready ? 'success' : 'warning'" class="mr-2">
-                {{ publishable.ready ? 'Prêt' : 'Incomplet' }}
-              </v-chip>
-            </template>
-          </v-expansion-panel-title>
-          <v-expansion-panel-text>
-            <p class="text-medium-emphasis text-body-2 mb-3">
-              Statut actuel : <strong>{{ statusConfig[template.status]?.label }}</strong>
-            </p>
-
-            <v-alert v-if="publishable && !publishable.ready && template.status !== 'published'" type="warning"
-              variant="tonal" density="compact" class="mb-3">
-              <div class="mb-1">Conditions manquantes pour publier :</div>
-              <ul class="ms-4">
-                <li v-for="(item, i) in publishable.missing" :key="i">{{ item }}</li>
-              </ul>
-            </v-alert>
-
-            <v-alert v-if="publishable?.ready && template.status === 'draft'" type="success" variant="tonal"
-              density="compact" class="mb-3">
-              Toutes les conditions sont remplies. Vous pouvez publier ce template.
-            </v-alert>
-
-            <div class="d-flex ga-2">
-              <v-btn v-if="template.status !== 'published'" color="success" :disabled="!publishable?.ready"
-                :loading="changingStatus" @click="changeStatus('published')">
-                Publier
-              </v-btn>
-              <v-btn v-if="template.status === 'published'" color="grey" :loading="changingStatus"
-                @click="changeStatus('draft')">
-                Repasser en brouillon
-              </v-btn>
-              <v-btn v-if="template.status !== 'archived'" color="warning" variant="outlined" :loading="changingStatus"
-                @click="changeStatus('archived')">
-                Archiver
-              </v-btn>
-              <v-btn v-if="template.status === 'archived'" color="primary" :loading="changingStatus"
-                @click="changeStatus('draft')">
-                Désarchiver (brouillon)
-              </v-btn>
-            </div>
-          </v-expansion-panel-text>
-        </v-expansion-panel>
       </v-expansion-panels>
     </template>
 
-    <ObjectModal v-model="objectModal" :endpoint="`/admin/templates/${templateId}/objects`" :object="objectToEdit"
+    <ObjectModal v-model="objectModal" :endpoint="`/projects/${projectId}/objects`" :object="objectToEdit"
       :card-schema="savedSchema" :template-formats="selectedFormatSlugs" :existing-objects="objects"
       @saved="onObjectSaved" />
 
@@ -211,7 +163,7 @@
       </v-card>
     </v-dialog>
 
-    <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000">
+    <v-snackbar v-model="snackbar.show" :color="snackbar.color" :timeout="snackbar.timeout ?? 3000">
       {{ snackbar.message }}
     </v-snackbar>
   </v-container>
@@ -219,17 +171,17 @@
 
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
-import { api } from '../../../api'
+import { api } from '../../api'
 import { useRouter, useRoute } from 'vue-router'
-import TemplateForm from '../../../components/admin/templates/TemplateForm.vue'
-import ObjectModal from '../../../components/admin/templates/ObjectModal.vue'
+import TemplateForm from '../../components/admin/templates/TemplateForm.vue'
+import ObjectModal from '../../components/admin/templates/ObjectModal.vue'
 
 const router = useRouter()
 const route = useRoute()
-const templateId = route.params.id
+const projectId = route.params.id
 
 const formRef = ref(null)
-const template = ref(null)
+const project = ref(null)
 const objects = ref([])
 const types = ref([])
 const typesLoading = ref(true)
@@ -237,7 +189,7 @@ const loading = ref(true)
 const savingInfos = ref(false)
 const errors = ref({})
 const openPanels = ref(['infos'])
-const snackbar = ref({ show: false, message: '', color: 'success' })
+const snackbar = ref({ show: false, message: '', color: 'success', timeout: 3000 })
 
 const formats = ref([])
 const formatsLoading = ref(true)
@@ -253,17 +205,13 @@ const savingSchema = ref(false)
 const schemaChanged = ref(false)
 const schemaSnapshot = ref('[]')
 
-const publishable = ref(null)
-const changingStatus = ref(false)
-
-const isLocked = computed(() => template.value?.status === 'published')
+const isLocked = computed(() => project.value?.status === 'published')
 
 let schemaUid = 0
 
 const statusConfig = {
-  draft: { label: 'Brouillon', color: 'grey' },
+  brouillon: { label: 'Brouillon', color: 'grey' },
   published: { label: 'Publié', color: 'success' },
-  archived: { label: 'Archivé', color: 'warning' },
 }
 
 const form = ref({
@@ -285,6 +233,7 @@ const fieldTypes = [
   { title: 'Liste déroulante', value: 'select' },
   { title: 'Oui/Non', value: 'boolean' },
 ]
+
 const savedSchema = computed(() => {
   try {
     return JSON.parse(schemaSnapshot.value)
@@ -292,19 +241,21 @@ const savedSchema = computed(() => {
     return []
   }
 })
+
 const selectedFormatSlugs = computed(() => {
   return formats.value
     .filter(f => form.value.format_ids.includes(f.id))
     .map(f => f.slug)
 })
+
 watch(cardSchema, () => {
   if (loading.value) return
   const current = JSON.stringify(cleanSchema())
   schemaChanged.value = current !== schemaSnapshot.value
 }, { deep: true })
 
-function showSuccess(msg) { snackbar.value = { show: true, message: msg, color: 'success' } }
-function showError(msg) { snackbar.value = { show: true, message: msg, color: 'error' } }
+function showSuccess(msg) { snackbar.value = { show: true, message: msg, color: 'success', timeout: 3000 } }
+function showError(msg, timeout = 3000) { snackbar.value = { show: true, message: msg, color: 'error', timeout } }
 
 async function loadTypes() {
   typesLoading.value = true
@@ -317,6 +268,7 @@ async function loadTypes() {
     typesLoading.value = false
   }
 }
+
 async function loadFormats() {
   formatsLoading.value = true
   try {
@@ -329,19 +281,18 @@ async function loadFormats() {
   }
 }
 
-async function loadTemplate({ silent = false } = {}) {
+async function loadProject({ silent = false } = {}) {
   if (!silent) loading.value = true
   try {
-    const { data } = await api.get(`/admin/templates/${templateId}`)
+    const { data } = await api.get(`/projects/${projectId}`)
 
-    if (template.value) {
-      Object.assign(template.value, data)
+    if (project.value) {
+      Object.assign(project.value, data)
     } else {
-      template.value = data
+      project.value = data
     }
 
     objects.value = data.objects ?? []
-    publishable.value = data.publishable ?? null
 
     form.value.name = data.name
     form.value.description = data.description ?? ''
@@ -365,8 +316,11 @@ async function loadTemplate({ silent = false } = {}) {
     schemaChanged.value = false
   } catch (e) {
     if (e.response?.status === 404) {
-      showError('Template introuvable.')
-      router.push('/admin/templates')
+      showError('Projet introuvable.')
+      router.push('/projects')
+    } else if (e.response?.status === 403) {
+      showError('Vous n\'avez pas accès à ce projet.')
+      router.push('/projects')
     } else {
       showError('Erreur lors du chargement.')
     }
@@ -374,6 +328,7 @@ async function loadTemplate({ silent = false } = {}) {
     if (!silent) loading.value = false
   }
 }
+
 function openCreateObject() {
   objectToEdit.value = null
   objectModal.value = true
@@ -386,34 +341,7 @@ function openEditObject(obj) {
 
 async function onObjectSaved() {
   showSuccess('Carte enregistrée.')
-  await loadObjects()
-  await loadTemplate({ silent: true })
-}
-
-async function loadObjects() {
-  try {
-    const { data } = await api.get(`/admin/templates/${templateId}/objects`)
-    objects.value = data
-  } catch (e) {
-    showError('Erreur lors du chargement des cartes.')
-  }
-}
-async function changeStatus(newStatus) {
-  changingStatus.value = true
-  try {
-    await api.patch(`/admin/templates/${templateId}/status`, { status: newStatus })
-    showSuccess(`Statut mis à jour : ${statusConfig[newStatus]?.label ?? newStatus}.`)
-    await loadTemplate({ silent: true })
-  } catch (e) {
-    if (e.response?.status === 422) {
-      const msg = e.response.data.errors?.status?.[0] ?? 'Action refusée par le serveur.'
-      showError(msg)
-    } else {
-      showError('Erreur lors du changement de statut.')
-    }
-  } finally {
-    changingStatus.value = false
-  }
+  await loadProject({ silent: true })
 }
 
 function askDeleteObject(obj) {
@@ -425,11 +353,10 @@ async function confirmDeleteObject() {
   if (!objectToDelete.value) return
   deletingObject.value = true
   try {
-    await api.delete(`/admin/templates/${templateId}/objects/${objectToDelete.value.id}`)
+    await api.delete(`/projects/${projectId}/objects/${objectToDelete.value.id}`)
     showSuccess('Carte supprimée.')
     deleteObjectDialog.value = false
-    await loadObjects()
-    await loadTemplate({ silent: true })
+    await loadProject({ silent: true })
   } catch (e) {
     if (e.response?.status === 422) {
       showError(e.response.data.message ?? 'Action refusée.', 6000)
@@ -453,6 +380,7 @@ function resetSchema() {
   }))
   schemaChanged.value = false
 }
+
 function slugifyKey(label) {
   const s = (label || '')
     .toLowerCase()
@@ -511,7 +439,7 @@ async function saveSchema() {
   }
   savingSchema.value = true
   try {
-    await api.patch(`/admin/templates/${templateId}`, { card_schema: cleanSchema() })
+    await api.patch(`/projects/${projectId}`, { card_schema: cleanSchema() })
     showSuccess('Champs personnalisés enregistrés.')
     schemaSnapshot.value = JSON.stringify(cleanSchema())
     schemaChanged.value = false
@@ -536,18 +464,13 @@ async function saveInfos() {
 
   savingInfos.value = true
   try {
-    await api.patch(`/admin/templates/${templateId}`, form.value)
+    await api.patch(`/projects/${projectId}`, form.value)
     showSuccess('Informations enregistrées.')
-    await loadTemplate({ silent: true })
+    await loadProject({ silent: true })
   } catch (e) {
     if (e.response?.status === 422) {
       errors.value = e.response.data.errors ?? {}
-      const generalError = e.response.data.errors?.status?.[0]
-      if (generalError) {
-        showError(generalError, 6000)
-      } else {
-        showError('Le serveur a rejeté certaines valeurs.')
-      }
+      showError('Le serveur a rejeté certaines valeurs.')
     } else {
       showError('Erreur lors de l\'enregistrement.')
     }
@@ -556,14 +479,15 @@ async function saveInfos() {
   }
 }
 
-function goBack() { router.push('/admin/templates') }
+function goBack() { router.push(`/projects/${projectId}`) }
 
 onMounted(() => {
   loadTypes()
   loadFormats()
-  loadTemplate()
+  loadProject()
 })
 </script>
+
 <style scoped>
 .color-dot {
   width: 24px;

@@ -47,11 +47,9 @@
 
               <v-switch v-else-if="field.type === 'boolean'" v-model="form.custom_data[field.key]" :label="field.label"
                 color="primary" density="compact" class="mb-2" />
-
             </template>
           </template>
 
-          <!-- BLOC MAPPING ICI, hors du v-if cardSchema -->
           <template v-if="supportsDeckMapping">
             <v-divider class="mb-4" />
             <div class="text-subtitle-2 mb-1">Correspondance jeu de cartes classique</div>
@@ -64,7 +62,6 @@
               {{ errors.existing_deck_mapping[0] }}
             </div>
           </template>
-
         </v-form>
       </v-card-text>
 
@@ -80,14 +77,13 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, watchEffect } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { api } from '../../../api'
 import DeckMappingSelector from './DeckMappingSelector.vue'
 
-
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
-  templateId: { type: [String, Number], required: true },
+  endpoint: { type: String, required: true },
   object: { type: Object, default: null },
   cardSchema: { type: Array, default: () => [] },
   templateFormats: { type: Array, default: () => [] },
@@ -110,15 +106,13 @@ const errors = ref({})
 const supportsDeckMapping = computed(() =>
   props.templateFormats.includes('cartes-classiques')
 )
-watchEffect(() => {
-  console.log('templateFormats:', props.templateFormats, '→ mapping:', supportsDeckMapping.value)
-})
 
 const rules = {
   required: v => (v !== null && v !== undefined && v !== '') || 'Champ requis',
   positive: v => (v > 0) || 'Doit être supérieur à 0',
   isNumber: v => v === null || v === '' || !isNaN(Number(v)) || 'Doit être un nombre',
 }
+
 const lockedCards = computed(() => {
   const editingId = props.object?.id
   const map = {}
@@ -155,6 +149,7 @@ function initCustomData(existing = {}) {
   }
   return data
 }
+
 function numberRules(field) {
   const r = [rules.isNumber]
   if (field.required) r.unshift(rules.required)
@@ -182,6 +177,7 @@ watch(dialog, (open) => {
 function close() {
   dialog.value = false
 }
+
 function blockExponent(e) {
   if (e.key === 'e' || e.key === 'E') {
     e.preventDefault()
@@ -196,11 +192,11 @@ async function submit() {
   saving.value = true
   try {
     const cleanedCustomData = { ...form.value.custom_data }
-      for (const field of props.cardSchema) {
-        if (field.type === 'number') {
-          const val = cleanedCustomData[field.key]
-          cleanedCustomData[field.key] = (val === null || val === '') ? null : Number(val)
-        }
+    for (const field of props.cardSchema) {
+      if (field.type === 'number') {
+        const val = cleanedCustomData[field.key]
+        cleanedCustomData[field.key] = (val === null || val === '') ? null : Number(val)
+      }
     }
 
     const payload = {
@@ -213,9 +209,9 @@ async function submit() {
     }
 
     if (isEdit.value) {
-      await api.patch(`/admin/templates/${props.templateId}/objects/${props.object.id}`, payload)
+      await api.patch(`${props.endpoint}/${props.object.id}`, payload)
     } else {
-      await api.post(`/admin/templates/${props.templateId}/objects`, payload)
+      await api.post(props.endpoint, payload)
     }
 
     emit('saved')

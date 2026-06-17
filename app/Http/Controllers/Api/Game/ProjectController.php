@@ -104,11 +104,22 @@ class ProjectController extends Controller
             return response()->json(['message' => 'Non autorisé.'], 403);
         }
 
-        $project->load(['template', 'type', 'objects']);
+        $project->load(['template', 'type', 'objects',  'formats']);
 
         return response()->json([
             'id'           => $project->id,
             'name'         => $project->name,
+            'type_id'      => $project->type_id,
+            'card_schema'  => $project->card_schema,
+            'card_layout'  => $project->card_layout ? [
+                'slug' => $project->card_layout,
+                'name' => \App\Models\CardLayout::where('slug', $project->card_layout)->value('name'),
+            ] : null,
+            'formats'      => $project->formats->map(fn ($f) => [
+                'id'   => $f->id,
+                'name' => $f->name,
+                'slug' => $f->slug,
+            ]),
             'description'  => $project->description,
             'mode'         => $project->mode,
             'status'       => $project->status,
@@ -117,15 +128,10 @@ class ProjectController extends Controller
             'min_players'  => $project->min_players,
             'max_players'  => $project->max_players,
             'template'     => $project->template ? [
-                'id'          => $project->template->id,
-                'name'        => $project->template->name,
-                'slug'        => $project->template->slug,
-                'rules'       => $project->template->rules,
-                'card_schema' => $project->template->card_schema,
-                'card_layout' => $project->template->card_layout ? [
-                    'slug' => $project->template->card_layout,
-                    'name' => \App\Models\CardLayout::where('slug', $project->template->card_layout)->value('name'),
-                ] : null,
+                'id'    => $project->template->id,
+                'name'  => $project->template->name,
+                'slug'  => $project->template->slug,
+                'rules' => $project->template->rules,
             ] : null,
             'based_on'     => $project->template_id ? [
                     'id'   => $project->template->id,

@@ -121,6 +121,9 @@
             @click="generatePdf">
             Télécharger le PDF
           </v-btn>
+          <v-btn color="primary" variant="tonal" prepend-icon="mdi-pencil" :to="`/projects/${project.id}/edit`">
+            Modifier
+          </v-btn>
           <v-btn color="error" variant="tonal" prepend-icon="mdi-delete" @click="deleteDialog = true">
             Supprimer
           </v-btn>
