@@ -153,6 +153,7 @@ class ProjectController extends Controller
             ]),
             'created_at'   => $project->created_at,
             'publishable'  => $project->publishabilityReport(),
+            'allow_duplication' => $project->allow_duplication,
         ]);
     }
     public function findSimilar(Request $request)

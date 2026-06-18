@@ -85,6 +85,16 @@ const routes = [
     component: () => import('../pages/projects/index.vue'),
     meta: { requiresAuth: true }
   },
+  {
+    path: '/community',
+    component: () => import('../pages/community/index.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/community/:id',
+    component: () => import('../pages/community/show.vue'),
+    meta: { requiresAuth: true }
+  },
   { path: '/:pathMatch(.*)*', redirect: '/' } // 404 → accueil
 ]
 

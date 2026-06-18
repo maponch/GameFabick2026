@@ -30,6 +30,7 @@ class UpdateProjectRequest extends FormRequest
             'duration_max' => ['sometimes', 'required', 'integer', 'min:1'],
             'format_ids'   => ['sometimes', 'array'],
             'format_ids.*' => ['integer', 'exists:game_formats,id'],
+            'allow_duplication' => ['sometimes', 'boolean'],
         ];
     }
 

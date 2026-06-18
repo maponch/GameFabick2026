@@ -62,6 +62,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/types', [\App\Http\Controllers\Api\Admin\Reference\TypeController::class, 'index']);
     Route::get('/formats', [\App\Http\Controllers\Api\Admin\Reference\GameFormatController::class, 'index']);
+
+    Route::get('/community', [\App\Http\Controllers\Api\User\CommunityController::class, 'index']);
+    Route::get('/community/{project}', [\App\Http\Controllers\Api\User\CommunityController::class, 'show']);
+    Route::post('/community/{project}/duplicate', [\App\Http\Controllers\Api\User\CommunityController::class, 'duplicate']);
+    Route::post('/community/{project}/play', [\App\Http\Controllers\Api\User\CommunityController::class, 'recordPlay']);
 });
 
 Route::post('/2fa/verify', [TwoFactorController::class, 'verify']);

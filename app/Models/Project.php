@@ -36,10 +36,13 @@ class Project extends Model
         'min_players',
         'max_players',
         'status',
+        'allow_duplication',
+        'based_on_project_id',
     ];
 
     protected $casts = [
         'card_schema' => 'array',
+        'allow_duplication' => 'boolean',
     ];
 
     public function user()
@@ -79,5 +82,14 @@ class Project extends Model
     public function moderationActions()
     {
         return $this->hasMany(ModerationAction::class);
+    }
+    public function basedOnProject()
+    {
+        return $this->belongsTo(Project::class, 'based_on_project_id');
+    }
+
+    public function derivedProjects()
+    {
+        return $this->hasMany(Project::class, 'based_on_project_id');
     }
 }

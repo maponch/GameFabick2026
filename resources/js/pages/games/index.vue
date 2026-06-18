@@ -32,40 +32,8 @@
     <!-- Grille de jeux -->
     <v-row v-else>
       <v-col v-for="template in filteredTemplates" :key="template.id" cols="12" sm="6" md="4">
-        <v-card class="h-100 d-flex flex-column cursor-pointer" hover @click="goToTemplate(template.slug)">
-          <v-card-title class="d-flex align-center justify-space-between">
-            <span>{{ template.name }}</span>
-            <v-chip v-if="template.type" size="x-small" color="primary" variant="tonal">
-              {{ template.type }}
-            </v-chip>
-          </v-card-title>
-
-          <v-card-text class="flex-grow-1">
-            <p class="text-body-2 mb-3"
-              style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
-              {{ template.description }}
-            </p>
-
-            <div class="d-flex flex-wrap ga-2">
-              <v-chip size="x-small" prepend-icon="mdi-account-group">
-                {{ template.min_players }}-{{ template.max_players }} joueurs
-              </v-chip>
-              <v-chip size="x-small" prepend-icon="mdi-clock-outline">
-                {{ template.duration_min }}-{{ template.duration_max }} min
-              </v-chip>
-              <v-chip v-if="supportsCartesClassiques(template)" size="x-small" color="success" variant="tonal"
-                prepend-icon="mdi-cards">
-                Jeu de cartes
-              </v-chip>
-            </div>
-          </v-card-text>
-
-          <v-card-actions>
-            <v-btn block color="primary" variant="tonal" append-icon="mdi-arrow-right">
-              Configurer
-            </v-btn>
-          </v-card-actions>
-        </v-card>
+        <ProjectCard :title="template.name" :description="template.description" :type-label="template.type"
+          :chips="buildChips(template)" button-label="Configurer" @click="goToTemplate(template.slug)" />
       </v-col>
     </v-row>
 
@@ -76,6 +44,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { api } from '../../api'
+import ProjectCard from '../../components/games/ProjectCard.vue'
 
 const router = useRouter()
 
@@ -113,6 +82,16 @@ const filteredTemplates = computed(() => {
 
   return result
 })
+function buildChips(template) {
+  const chips = [
+    { label: `${template.min_players}-${template.max_players} joueurs`, icon: 'mdi-account-group' },
+    { label: `${template.duration_min}-${template.duration_max} min`, icon: 'mdi-clock-outline' },
+  ]
+  if (supportsCartesClassiques(template)) {
+    chips.push({ label: 'Jeu de cartes', color: 'success', icon: 'mdi-cards' })
+  }
+  return chips
+}
 
 function goToTemplate(slug) {
   router.push(`/games/${slug}`)

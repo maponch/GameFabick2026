@@ -185,6 +185,10 @@
                 @click="changeStatus('published')">
                 Publier
               </v-btn>
+              <v-switch v-model="form.allow_duplication"
+                label="Autoriser la duplication de ce projet par d'autres utilisateurs" color="primary"
+                density="compact" :disabled="isLocked" hide-details class="mb-3"
+                @update:model-value="saveDuplicationPreference" />
               <v-btn v-if="project.status === 'published'" color="grey" :loading="changingStatus"
                 @click="changeStatus('draft')">
                 Repasser en brouillon
@@ -283,6 +287,7 @@ const form = ref({
   max_players: 4,
   duration_min: 15,
   duration_max: 30,
+  allow_duplication: true,
 })
 
 const fieldTypes = [
@@ -363,6 +368,7 @@ async function loadProject({ silent = false } = {}) {
     form.value.max_players = data.max_players
     form.value.duration_min = data.duration_min
     form.value.duration_max = data.duration_max
+    form.value.allow_duplication = data.allow_duplication ?? true
 
     cardSchema.value = (data.card_schema ?? []).map(f => ({
       _uid: ++schemaUid,
@@ -554,6 +560,16 @@ async function changeStatus(newStatus) {
     }
   } finally {
     changingStatus.value = false
+  }
+}
+async function saveDuplicationPreference(value) {
+  try {
+    await api.patch(`/projects/${projectId}`, { allow_duplication: value })
+    showSuccess(value ? 'Duplication autorisée.' : 'Duplication interdite.')
+    await loadProject({ silent: true })
+  } catch (e) {
+    showError('Erreur lors de la mise à jour.')
+    await loadProject({ silent: true }) // resync en cas d'échec
   }
 }
 

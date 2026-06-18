@@ -16,6 +16,7 @@
     <!-- DESKTOP : SI CONNECTÉ -->
     <template v-if="user && mdAndUp">
       <v-btn variant="text" to="/dashboard">Dashboard</v-btn>
+      <v-btn variant="text" to="/community">Galerie</v-btn>
       <v-btn variant="text" to="/games">Jeux</v-btn>
       <v-btn variant="text" to="/projects">Mes projets</v-btn>
       <v-btn variant="text" :to="{ name: 'profile' }">Profil</v-btn>
@@ -56,6 +57,7 @@
     <!-- Connecté -->
     <template v-else>
       <v-list-item prepend-icon="mdi-view-dashboard" title="Dashboard" to="/dashboard" @click="drawer = false" />
+      <v-list-item prepend-icon="mdi-account-group" title="Galerie" to="/community" @click="drawer = false" />
       <v-list-item prepend-icon="mdi-cards" title="Jeux" to="/games" @click="drawer = false" />
       <v-list-item prepend-icon="mdi-account" title="Profil" :to="{ name: 'profile' }" @click="drawer = false" />
       <v-list-item prepend-icon="mdi-folder-multiple" title="Mes projets" to="/projects" @click="drawer = false" />
