@@ -43,4 +43,24 @@ class ProjectController extends Controller
             'status' => $project->status,
         ]);
     }
+    public function recordPlay(Request $request, Project $project)
+    {
+        if ($project->user_id !== $request->user()?->id) {
+            return response()->json(['message' => 'Action non autorisée.'], 403);
+        }
+
+        $data = $request->validate([
+            'mode' => ['nullable', 'in:printable,existing_deck'],
+        ]);
+
+        \App\Models\PlayHistory::create([
+            'user_id'       => $request->user()->id,
+            'project_id'    => $project->id,
+            'played_at'     => now(),
+            'note'          => $data['mode'] ?? null,
+            'snapshot_data' => $project->toSnapshot(),
+        ]);
+
+        return response()->json(['message' => 'Lecture enregistrée.'], 201);
+    }
 }

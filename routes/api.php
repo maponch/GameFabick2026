@@ -59,6 +59,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/projects/{project}/objects', [UserProjectObjectController::class, 'store']);
     Route::match(['put', 'patch'], '/projects/{project}/objects/{object}', [UserProjectObjectController::class, 'update']);
     Route::delete('/projects/{project}/objects/{object}', [UserProjectObjectController::class, 'destroy']);
+    Route::post('/projects/{project}/play', [\App\Http\Controllers\Api\User\ProjectController::class, 'recordPlay']);
 
     Route::get('/types', [\App\Http\Controllers\Api\Admin\Reference\TypeController::class, 'index']);
     Route::get('/formats', [\App\Http\Controllers\Api\Admin\Reference\GameFormatController::class, 'index']);

@@ -13,10 +13,12 @@ class PlayHistory extends Model
         'project_id',
         'played_at',
         'note',
+        'snapshot_data',
     ];
 
     protected $casts = [
         'played_at' => 'datetime',
+        'snapshot_data' => 'array',
     ];
 
     public function user()

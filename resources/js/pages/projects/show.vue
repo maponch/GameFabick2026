@@ -242,6 +242,11 @@ async function generatePdf() {
     }
 
     await html2pdf().set(options).from(element).save()
+    try {
+      await api.post(`/projects/${project.value.id}/play`, { mode: project.value.mode })
+    } catch {
+      // silencieux : on ne bloque pas le user si la trace échoue
+    }
     snackbar.value = { show: true, message: 'PDF généré.', color: 'success' }
   } catch (e) {
     console.error(e)

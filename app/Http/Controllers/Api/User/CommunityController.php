@@ -128,7 +128,7 @@ class CommunityController extends Controller
         ]);
 
         $duplicate->formats()->sync($project->formats->pluck('id')->all());
-
+    
         foreach ($project->objects as $object) {
             $duplicate->objects()->create([
                 'name'                  => $object->name,
@@ -140,6 +140,14 @@ class CommunityController extends Controller
                 'custom_data'           => $object->custom_data,
             ]);
         }
+
+        \App\Models\PlayHistory::create([
+            'user_id'       => $request->user()->id,
+            'project_id'    => $duplicate->id,
+            'played_at'     => now(),
+            'note'          => 'duplicated_from_' . $project->id,
+            'snapshot_data' => $duplicate->toSnapshot(),
+        ]);
 
         return response()->json([
             'id'      => $duplicate->id,
