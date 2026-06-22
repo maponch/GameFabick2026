@@ -207,6 +207,16 @@ function formatFieldValue(field, value) {
   if (field.type === 'boolean') return value ? 'Oui' : 'Non'
   return value
 }
+function visibleFields(card) {
+  return schema.filter(field => {
+    const val = card.customData?.[field.key]
+    if (field.type === 'boolean') {
+      if (field.hide_if_false && !val) return false
+      return val !== null && val !== undefined
+    }
+    return val !== null && val !== undefined && val !== ''
+  })
+}
 
 async function deleteProject() {
   deleting.value = true

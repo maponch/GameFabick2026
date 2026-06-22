@@ -28,10 +28,9 @@ const props = defineProps({
 
 const printArea = ref(null)
 
-const schema = computed(() => props.project.template?.card_schema ?? [])
-
+const schema = computed(() => props.project.card_schema ?? [])
 const layoutComponent = computed(() => {
-  const slug = props.project.template?.card_layout?.slug
+  const slug = props.project.card_layout?.slug
   return LAYOUT_MAP[slug] ?? FreeLayoutPdf
 })
 

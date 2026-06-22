@@ -236,6 +236,16 @@ async function duplicate() {
     duplicating.value = false
   }
 }
+function visibleFields(card) {
+  return schema.filter(field => {
+    const val = card.customData?.[field.key]
+    if (field.type === 'boolean') {
+      if (field.hide_if_false && !val) return false
+      return val !== null && val !== undefined
+    }
+    return val !== null && val !== undefined && val !== ''
+  })
+}
 
 onMounted(loadProject)
 </script>

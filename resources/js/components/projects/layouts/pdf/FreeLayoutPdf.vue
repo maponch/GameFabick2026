@@ -44,6 +44,10 @@ const isEmpty = computed(() => {
 const customFields = computed(() => {
   return (props.schema ?? []).filter(field => {
     const val = props.card.customData?.[field.key]
+    if (field.type === 'boolean') {
+      if (field.hide_if_false && !val) return false
+      return val !== null && val !== undefined
+    }
     return val !== null && val !== undefined && val !== ''
   })
 })

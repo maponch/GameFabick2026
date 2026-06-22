@@ -129,6 +129,8 @@
                   <v-btn icon="mdi-delete" size="small" variant="text" color="error" @click="removeField(i)" />
                 </v-col>
               </v-row>
+              <v-switch v-if="field.type === 'boolean'" v-model="field.hide_if_false" label="Cacher si non coché"
+                color="primary" density="compact" hide-details class="mt-2 ml-2" />
 
               <v-combobox v-if="field.type === 'select'" v-model="field.options" label="Options (Entrée pour ajouter) *"
                 variant="outlined" density="compact" multiple chips closable-chips class="mt-2" hide-details />
@@ -182,7 +184,7 @@
 
             <div class="d-flex ga-2 flex-wrap">
               <v-btn v-if="project.status === 'draft'" color="success" :loading="changingStatus"
-                @click="changeStatus('published')">
+                @click="attemptPublish">
                 Publier
               </v-btn>
               <v-switch v-model="form.allow_duplication"
@@ -221,6 +223,28 @@
           <v-spacer />
           <v-btn variant="text" @click="deleteObjectDialog = false">Annuler</v-btn>
           <v-btn color="error" :loading="deletingObject" @click="confirmDeleteObject">Supprimer</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-dialog v-model="showPublishConfirm" max-width="500">
+      <v-card>
+        <v-card-title>Publier un projet incomplet ?</v-card-title>
+        <v-card-text>
+          <p class="mb-3">
+            Votre projet est marqué comme <strong>incomplet</strong>. Vous pouvez le publier quand même, mais il
+            apparaîtra avec un label "Incomplet" pour les autres utilisateurs.
+          </p>
+          <p class="mb-2 text-body-2 text-medium-emphasis">Conditions manquantes :</p>
+          <ul class="ms-4 text-body-2">
+            <li v-for="(item, i) in publishable?.missing ?? []" :key="i">{{ item }}</li>
+          </ul>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="showPublishConfirm = false">Annuler</v-btn>
+          <v-btn color="success" :loading="changingStatus" @click="confirmPublish">
+            Publier quand même
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -267,6 +291,8 @@ const cardSchema = ref([])
 const savingSchema = ref(false)
 const schemaChanged = ref(false)
 const schemaSnapshot = ref('[]')
+
+const showPublishConfirm = ref(false)
 
 const isLocked = computed(() => project.value?.status === 'published')
 
@@ -377,6 +403,7 @@ async function loadProject({ silent = false } = {}) {
       type: f.type ?? 'text',
       required: !!f.required,
       options: f.options ?? [],
+      hide_if_false: !!f.hide_if_false,
     }))
     schemaSnapshot.value = JSON.stringify(cleanSchema())
     schemaChanged.value = false
@@ -443,6 +470,7 @@ function resetSchema() {
     type: f.type,
     required: !!f.required,
     options: f.options ?? [],
+    hide_if_false: !!f.hide_if_false,
   }))
   schemaChanged.value = false
 }
@@ -493,6 +521,7 @@ function cleanSchema() {
   return cardSchema.value.map(f => {
     const out = { key: f.key, label: f.label.trim(), type: f.type, required: !!f.required }
     if (f.type === 'select') out.options = f.options ?? []
+    if (f.type === 'boolean') out.hide_if_false = !!f.hide_if_false
     return out
   })
 }
@@ -544,6 +573,18 @@ async function saveInfos() {
   } finally {
     savingInfos.value = false
   }
+}
+function attemptPublish() {
+  if (publishable.value && !publishable.value.ready) {
+    showPublishConfirm.value = true
+    return
+  }
+  changeStatus('published')
+}
+
+async function confirmPublish() {
+  showPublishConfirm.value = false
+  await changeStatus('published')
 }
 async function changeStatus(newStatus) {
   changingStatus.value = true
