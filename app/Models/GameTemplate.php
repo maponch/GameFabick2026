@@ -71,5 +71,19 @@ class GameTemplate extends Model
                     ->withTimestamps()
                     ->withTrashed();
     }
+    public function ratings()
+    {
+        return $this->hasMany(Rating::class, 'template_id');
+    }
+
+    public function averageRating(): float
+    {
+        return round($this->ratings()->avg('score') ?? 0, 1);
+    }
+
+    public function ratingsCount(): int
+    {
+        return $this->ratings()->count();
+    }
     
 }

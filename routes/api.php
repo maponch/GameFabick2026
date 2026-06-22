@@ -68,6 +68,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/community/{project}', [\App\Http\Controllers\Api\User\CommunityController::class, 'show']);
     Route::post('/community/{project}/duplicate', [\App\Http\Controllers\Api\User\CommunityController::class, 'duplicate']);
     Route::post('/community/{project}/play', [\App\Http\Controllers\Api\User\CommunityController::class, 'recordPlay']);
+
+    Route::post('/ratings', [\App\Http\Controllers\Api\User\RatingController::class, 'store']);
+    Route::delete('/ratings/{rating}', [\App\Http\Controllers\Api\User\RatingController::class, 'destroy']);
 });
 
 Route::post('/2fa/verify', [TwoFactorController::class, 'verify']);

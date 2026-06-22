@@ -47,6 +47,15 @@
         <span class="text-body-2">{{ formatDate(item.updated_at) }}</span>
       </template>
 
+      <template #item.rating="{ item }">
+        <RatingStars :average="item.average_rating ?? 0" :count="item.ratings_count ?? 0" :readonly="true" size="small"
+          :show-label="false" />
+        <div v-if="(item.ratings_count ?? 0) > 0" class="text-caption">
+          {{ item.average_rating.toFixed(1) }} ({{ item.ratings_count }})
+        </div>
+        <span v-else class="text-caption text-medium-emphasis">—</span>
+      </template>
+
       <template #item.actions="{ item }">
         <v-btn icon="mdi-eye" size="small" variant="text" :to="`/projects/${item.id}`" />
         <v-btn icon="mdi-pencil" size="small" variant="text" :to="`/projects/${item.id}/edit`" />
@@ -77,6 +86,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { api } from '../../api'
 import { PROJECT_STATUS } from '../../i18n/status.js'
+import RatingStars from '../../components/common/RatingStars.vue'
 
 const projects = ref([])
 const loading = ref(true)
@@ -106,6 +116,7 @@ const headers = [
   { title: 'Nom', key: 'name', sortable: true },
   { title: 'Statut', key: 'status', sortable: true, width: 130 },
   { title: 'Qualité', key: 'publishable', sortable: false, width: 130 },
+  { title: 'Note', key: 'rating', sortable: false, width: 140 },
   { title: 'Type', key: 'type', sortable: true },
   { title: 'Modèle', key: 'template', sortable: true },
   { title: 'Mode', key: 'mode', sortable: true, width: 140 },

@@ -10,131 +10,140 @@
     </div>
 
     <div v-else-if="project">
+      <v-row>
+        <!-- Colonne principale : contenu -->
+        <v-col cols="12" md="8">
+          <div class="d-flex align-center ga-2 mb-2 flex-wrap">
+            <h1 class="text-h4">{{ project.name }}</h1>
+            <v-chip :color="project.mode === 'printable' ? 'primary' : 'success'" prepend-icon="mdi-cards">
+              {{ project.mode === 'printable' ? 'Mode impression' : 'Jeu de cartes classique' }}
+            </v-chip>
+          </div>
 
-      <div class="d-flex align-center justify-space-between mb-2 flex-wrap ga-2">
-        <h1 class="text-h4">{{ project.name }}</h1>
-        <v-chip :color="project.mode === 'printable' ? 'primary' : 'success'" prepend-icon="mdi-cards">
-          {{ project.mode === 'printable' ? 'Mode impression' : 'Jeu de cartes classique' }}
-        </v-chip>
-      </div>
+          <p class="text-body-2 text-medium-emphasis mb-6">
+            Basé sur <strong>{{ project.template?.name }}</strong>
+          </p>
 
-      <p class="text-body-2 text-medium-emphasis mb-6">
-        Basé sur <strong>{{ project.template?.name }}</strong>
-      </p>
+          <v-tabs v-model="tab" class="mb-6">
+            <v-tab value="cards">
+              <v-icon class="me-2">mdi-cards</v-icon>
+              {{ project.mode === 'printable' ? 'Cartes à imprimer' : 'Pense-bête' }}
+            </v-tab>
+            <v-tab value="rules">
+              <v-icon class="me-2">mdi-book-open</v-icon>
+              Règles du jeu
+            </v-tab>
+          </v-tabs>
 
-      <v-tabs v-model="tab" class="mb-6">
-        <v-tab value="cards">
-          <v-icon class="me-2">mdi-cards</v-icon>
-          {{ project.mode === 'printable' ? 'Cartes à imprimer' : 'Pense-bête' }}
-        </v-tab>
-        <v-tab value="rules">
-          <v-icon class="me-2">mdi-book-open</v-icon>
-          Règles du jeu
-        </v-tab>
-      </v-tabs>
+          <v-window v-model="tab">
+            <v-window-item value="cards">
+              <div v-if="project.mode === 'printable'">
+                <v-row>
+                  <v-col v-for="object in project.objects" :key="object.id" cols="6" sm="4" md="4">
+                    <v-card v-for="n in object.quantity" :key="`${object.id}-${n}`" class="mb-3 d-flex flex-column"
+                      :color="object.default_color" height="220">
+                      <v-card-title class="text-center text-white pb-1">
+                        {{ object.custom_text || object.name }}
+                      </v-card-title>
 
-      <v-window v-model="tab">
+                      <v-card-text
+                        class="text-center text-white flex-grow-1 d-flex flex-column align-center justify-center">
+                        <p v-if="object.description" class="text-caption mb-2">
+                          {{ object.description }}
+                        </p>
 
-        <!-- ONGLET CARTES -->
-        <v-window-item value="cards">
+                        <div v-if="objectCustomFields(object).length > 0" class="custom-fields w-100">
+                          <div v-for="field in objectCustomFields(object)" :key="field.key" class="custom-field">
+                            <span class="custom-field-label">{{ field.label }} :</span>
+                            <span class="custom-field-value">
+                              {{ formatFieldValue(field, object.custom_data?.[field.key]) }}
+                            </span>
+                          </div>
+                        </div>
+                      </v-card-text>
+                    </v-card>
+                  </v-col>
+                </v-row>
+              </div>
 
-          <!-- Mode impression -->
-          <div v-if="project.mode === 'printable'">
-            <v-row>
-              <v-col v-for="object in project.objects" :key="object.id" cols="6" sm="4" md="3">
-                <v-card v-for="n in object.quantity" :key="`${object.id}-${n}`" class="mb-3 d-flex flex-column"
-                  :color="object.default_color" height="220">
-                  <v-card-title class="text-center text-white pb-1">
-                    {{ object.custom_text || object.name }}
-                  </v-card-title>
+              <div v-else>
+                <v-card class="pa-6">
+                  <h2 class="text-h6 mb-4">Correspondance des cartes</h2>
+                  <p class="text-body-2 text-medium-emphasis mb-4">
+                    Distribuez ces cartes de votre jeu classique en fonction de leur rôle :
+                  </p>
 
-                  <v-card-text
-                    class="text-center text-white flex-grow-1 d-flex flex-column align-center justify-center">
-                    <p v-if="object.description" class="text-caption mb-2">
-                      {{ object.description }}
-                    </p>
-
-                    <div v-if="objectCustomFields(object).length > 0" class="custom-fields w-100">
-                      <div v-for="field in objectCustomFields(object)" :key="field.key" class="custom-field">
-                        <span class="custom-field-label">{{ field.label }} :</span>
-                        <span class="custom-field-value">{{ formatFieldValue(field, object.custom_data?.[field.key])
-                          }}</span>
-                      </div>
-                    </div>
-                  </v-card-text>
+                  <v-table>
+                    <thead>
+                      <tr>
+                        <th>Carte du jeu</th>
+                        <th>Rôle</th>
+                        <th>Quantité</th>
+                        <th>Description</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="object in project.objects" :key="object.id">
+                        <td>
+                          <v-chip v-for="mapping in object.existing_deck_mapping" :key="mapping"
+                            :color="cardColor(mapping) === 'red' ? 'red' : 'white'" variant="outlined" size="default"
+                            class="me-1">
+                            {{ cardShortLabel(mapping) }}
+                          </v-chip>
+                        </td>
+                        <td><strong>{{ object.name }}</strong></td>
+                        <td>×{{ object.quantity }}</td>
+                        <td class="text-caption">{{ object.description }}</td>
+                      </tr>
+                    </tbody>
+                  </v-table>
                 </v-card>
-              </v-col>
-            </v-row>
-          </div>
+              </div>
+            </v-window-item>
 
-          <!-- Mode jeu existant -->
-          <div v-else>
-            <v-card class="pa-6">
-              <h2 class="text-h6 mb-4">Correspondance des cartes</h2>
-              <p class="text-body-2 text-medium-emphasis mb-4">
-                Distribuez ces cartes de votre jeu classique en fonction de leur rôle :
-              </p>
+            <v-window-item value="rules">
+              <v-card class="pa-6">
+                <div class="text-body-1" style="white-space: pre-line">{{ project.rules }}</div>
+              </v-card>
+            </v-window-item>
+          </v-window>
+        </v-col>
 
-              <v-table>
-                <thead>
-                  <tr>
-                    <th>Carte du jeu</th>
-                    <th>Rôle</th>
-                    <th>Quantité</th>
-                    <th>Description</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="object in project.objects" :key="object.id">
-                    <td>
-                      <v-chip v-for="mapping in object.existing_deck_mapping" :key="mapping"
-                        :color="cardColor(mapping) === 'red' ? 'red' : 'white'"
-                        variant="outlined" size="default" class="me-1">
-                        {{ cardShortLabel(mapping) }}
-                      </v-chip>
-                    </td>
-                    <td><strong>{{ object.name }}</strong></td>
-                    <td>×{{ object.quantity }}</td>
-                    <td class="text-caption">{{ object.description }}</td>
-                  </tr>
-                </tbody>
-              </v-table>
-            </v-card>
-          </div>
+        <!-- Sidebar droite : actions persistantes -->
+        <v-col cols="12" md="4">
+          <v-card class="pa-4 sticky-top">
+            <h3 class="text-h6 mb-3">Actions</h3>
 
-        </v-window-item>
+            <div class="mb-4">
+              <p class="text-body-2 mb-1">Votre note</p>
+              <RatingStars :average="project.average_rating ?? 0" :count="project.ratings_count ?? 0"
+                :my-rating="project.my_rating" :readonly="false" size="default" @rate="rateProject"
+                @clear="clearRating" />
+            </div>
 
-        <!-- ONGLET RÈGLES -->
-        <v-window-item value="rules">
-          <v-card class="pa-6">
-            <div class="text-body-1" style="white-space: pre-line">{{ project.template?.rules }}</div>
+            <v-divider class="mb-3" />
+
+            <v-btn block color="primary" variant="tonal" prepend-icon="mdi-printer" :loading="generatingPdf"
+              class="mb-2" @click="generatePdf">
+              Télécharger le PDF
+            </v-btn>
+
+            <v-btn block color="primary" variant="tonal" prepend-icon="mdi-pencil" :to="`/projects/${project.id}/edit`"
+              class="mb-2">
+              Modifier
+            </v-btn>
+
+            <v-btn block color="error" variant="tonal" prepend-icon="mdi-delete" @click="deleteDialog = true">
+              Supprimer
+            </v-btn>
           </v-card>
-        </v-window-item>
-
-      </v-window>
-
-      <!-- Actions -->
-      <v-card class="pa-4 mt-6">
-        <h3 class="text-h6 mb-3">Actions</h3>
-        <div class="d-flex flex-wrap ga-2">
-          <v-btn color="primary" variant="tonal" prepend-icon="mdi-printer" :loading="generatingPdf"
-            @click="generatePdf">
-            Télécharger le PDF
-          </v-btn>
-          <v-btn color="primary" variant="tonal" prepend-icon="mdi-pencil" :to="`/projects/${project.id}/edit`">
-            Modifier
-          </v-btn>
-          <v-btn color="error" variant="tonal" prepend-icon="mdi-delete" @click="deleteDialog = true">
-            Supprimer
-          </v-btn>
-        </div>
-      </v-card>
+        </v-col>
+      </v-row>
 
       <div style="position: fixed; left: -9999px; top: 0;">
         <PrintableCards v-if="project.mode === 'printable'" ref="printableCardsRef" :project="project" />
         <PrintableCheatsheet v-if="project.mode === 'existing_deck'" ref="printableCheatsheetRef" :project="project" />
       </div>
-
     </div>
 
     <!-- Dialog suppression -->
@@ -170,6 +179,7 @@ import html2pdf from 'html2pdf.js'
 import PrintableCards from '../../components/projects/PrintableCards.vue'
 import PrintableCheatsheet from '../../components/projects/PrintableCheatsheet.vue'
 import { cardShortLabel, cardColor } from '../../constants/classicDeck' 
+import RatingStars from '../../components/common/RatingStars.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -265,6 +275,19 @@ async function generatePdf() {
     generatingPdf.value = false
   }
 }
+async function rateProject(score) {
+  try {
+    await api.post('/ratings', { project_id: project.value.id, score })
+    snackbar.value = { show: true, message: 'Note enregistrée.', color: 'success' }
+    await loadProject()
+  } catch {
+    snackbar.value = { show: true, message: 'Erreur lors de la notation.', color: 'error' }
+  }
+}
+
+function clearRating() {
+  snackbar.value = { show: true, message: 'Pour modifier, cliquez sur une autre étoile.', color: 'info' }
+}
 
 onMounted(loadProject)
 </script>
@@ -301,5 +324,9 @@ onMounted(loadProject)
 .mapping-chip.black {
   color: #000 !important;
   border-color: #000 !important;
+}
+.sticky-top {
+  position: sticky;
+  top: 80px;
 }
 </style>

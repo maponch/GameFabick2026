@@ -11,7 +11,7 @@ class CommunityController extends Controller
     public function index(Request $request)
     {
         $projects = Project::where('status', Project::STATUS_PUBLISHED)
-            ->with(['user:id,username', 'type', 'template:id,name', 'formats', 'objects'])
+            ->with(['user:id,username', 'type', 'template:id,name', 'formats', 'objects', 'ratings'])
             ->orderBy('updated_at', 'desc')
             ->get()
             ->map(fn ($p) => [
@@ -37,6 +37,9 @@ class CommunityController extends Controller
                     'username' => $p->user->username,
                 ] : null,
                 'publishable'       => $p->publishabilityReport(),
+                'average_rating' => $p->averageRating(),
+                'ratings_count'  => $p->ratingsCount(),
+                'my_rating'      => $p->ratings->firstWhere('user_id', $request->user()->id)?->score,
                 'created_at'        => $p->created_at,
                 'updated_at'        => $p->updated_at,
             ]);
@@ -44,13 +47,13 @@ class CommunityController extends Controller
         return response()->json($projects);
     }
 
-    public function show(Project $project)
+    public function show(Request $request, Project $project)
     {
         if ($project->status !== Project::STATUS_PUBLISHED) {
             return response()->json(['message' => 'Projet introuvable ou non publié.'], 404);
         }
 
-        $project->load(['user:id,username', 'type', 'template:id,name,slug', 'formats', 'objects']);
+        $project->load(['user:id,username', 'type', 'template:id,name,slug', 'formats', 'objects', 'ratings']);
 
         return response()->json([
             'id'                => $project->id,
@@ -94,6 +97,9 @@ class CommunityController extends Controller
                 'name' => $project->template->name,
                 'slug' => $project->template->slug,
             ] : null,
+            'average_rating' => $project->averageRating(),
+            'ratings_count'  => $project->ratingsCount(),
+            'my_rating'      => $project->ratings->firstWhere('user_id', $request->user()?->id)?->score,
         ]);
     }
     public function duplicate(Request $request, Project $project)

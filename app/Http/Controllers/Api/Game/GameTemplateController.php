@@ -1,14 +1,16 @@
 <?php
+
 namespace App\Http\Controllers\Api\Game;
 
 use App\Http\Controllers\Controller;
 use App\Models\GameTemplate;
+use Illuminate\Http\Request;
 
 class GameTemplateController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $templates = GameTemplate::with(['type', 'objects', 'formats'])
+        $templates = GameTemplate::with(['type', 'objects', 'formats', 'ratings'])
             ->published()
             ->orderBy('name')
             ->get()
@@ -28,13 +30,16 @@ class GameTemplateController extends Controller
                     'slug' => $f->slug,
                 ]),
                 'objects_count'  => $t->objects->count(),
+                'average_rating' => $t->averageRating(),
+                'ratings_count'  => $t->ratingsCount(),
+                'my_rating'      => $t->ratings->firstWhere('user_id', $request->user()?->id)?->score,
             ]);
         return response()->json($templates);
     }
 
-    public function show(string $slug)
+    public function show(Request $request, string $slug)
     {
-        $template = GameTemplate::with(['type', 'objects', 'formats'])
+        $template = GameTemplate::with(['type', 'objects', 'formats', 'ratings'])
             ->where('slug', $slug)
             ->published()
             ->firstOrFail();
@@ -63,6 +68,9 @@ class GameTemplateController extends Controller
                 'default_image_path'    => $o->default_image_path,
                 'existing_deck_mapping' => $o->existing_deck_mapping,
             ]),
+            'average_rating' => $template->averageRating(),
+            'ratings_count'  => $template->ratingsCount(),
+            'my_rating'      => $template->ratings->firstWhere('user_id', $request->user()?->id)?->score,
         ]);
     }
 }

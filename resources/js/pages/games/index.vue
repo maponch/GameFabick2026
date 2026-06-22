@@ -33,7 +33,8 @@
     <v-row v-else>
       <v-col v-for="template in filteredTemplates" :key="template.id" cols="12" sm="6" md="4">
         <ProjectCard :title="template.name" :description="template.description" :type-label="template.type"
-          :chips="buildChips(template)" button-label="Configurer" @click="goToTemplate(template.slug)" />
+          :chips="buildChips(template)" :rating="{ average: template.average_rating, count: template.ratings_count }"
+          button-label="Configurer" @click="goToTemplate(template.slug)" />
       </v-col>
     </v-row>
 

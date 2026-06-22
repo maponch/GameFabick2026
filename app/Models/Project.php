@@ -132,4 +132,18 @@ class Project extends Model
             'snapshotted_at'     => now()->toIso8601String(),
         ];
     }
+    public function ratings()
+    {
+        return $this->hasMany(Rating::class);
+    }
+
+    public function averageRating(): float
+    {
+        return round($this->ratings()->avg('score') ?? 0, 1);
+    }
+
+    public function ratingsCount(): int
+    {
+        return $this->ratings()->count();
+    }
 }

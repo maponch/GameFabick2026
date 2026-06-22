@@ -12,7 +12,7 @@ class ProjectController extends Controller
     public function index(Request $request)
     {
         $projects = $request->user()->projects()
-            ->with(['template', 'type', 'formats', 'objects'])
+            ->with(['template', 'type', 'formats', 'objects', 'ratings'])
             ->orderBy('updated_at', 'desc')
             ->get()
             ->map(fn($p) => [
@@ -28,6 +28,8 @@ class ProjectController extends Controller
                 'type'         => $p->type?->name,
                 'template'     => $p->template?->name,
                 'publishable'  => $p->publishabilityReport(),
+                'average_rating' => $p->averageRating(),
+                'ratings_count'  => $p->ratingsCount(),
                 'created_at'   => $p->created_at,
                 'updated_at'   => $p->updated_at,
             ]);
@@ -106,7 +108,7 @@ class ProjectController extends Controller
             return response()->json(['message' => 'Non autorisé.'], 403);
         }
 
-        $project->load(['template', 'type', 'objects',  'formats']);
+        $project->load(['template', 'type', 'objects', 'formats', 'ratings']);
 
         return response()->json([
             'id'           => $project->id,
@@ -153,6 +155,9 @@ class ProjectController extends Controller
             ]),
             'created_at'   => $project->created_at,
             'publishable'  => $project->publishabilityReport(),
+            'average_rating' => $project->averageRating(),
+            'ratings_count'  => $project->ratingsCount(),
+            'my_rating'      => $project->ratings->firstWhere('user_id', $request->user()->id)?->score,
             'allow_duplication' => $project->allow_duplication,
         ]);
     }

@@ -34,6 +34,12 @@
                 {{ template.duration_min }}-{{ template.duration_max }} min
               </v-chip>
             </div>
+            <div class="mb-4">
+              <p class="text-body-2 mb-1">Note</p>
+              <RatingStars :average="template.average_rating ?? 0" :count="template.ratings_count ?? 0"
+                :my-rating="template.my_rating" :readonly="false" size="default" @rate="rateTemplate"
+                @clear="clearRating" />
+            </div>
 
             <v-divider class="mb-4" />
 
@@ -143,6 +149,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { api } from '../../api'
+import RatingStars from '../../components/common/RatingStars.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -240,6 +247,19 @@ function formatDate(date) {
 function goToProject(id) {
   similarDialog.value = false
   router.push(`/projects/${id}`)
+}
+async function rateTemplate(score) {
+  try {
+    await api.post('/ratings', { template_id: template.value.id, score })
+    snackbar.value = { show: true, message: 'Note enregistrée.', color: 'success' }
+    await loadTemplate()
+  } catch {
+    snackbar.value = { show: true, message: 'Erreur lors de la notation.', color: 'error' }
+  }
+}
+
+function clearRating() {
+  snackbar.value = { show: true, message: 'Pour modifier, cliquez sur une autre étoile.', color: 'info' }
 }
 
 onMounted(loadTemplate)

@@ -12,6 +12,10 @@
     </v-card-subtitle>
 
     <v-card-text class="flex-grow-1">
+      <div v-if="rating" class="mb-2">
+        <RatingStars :average="rating.average ?? 0" :count="rating.count ?? 0" :readonly="true" size="x-small" />
+      </div>
+
       <p v-if="description" class="text-body-2 mb-3 description-clamp">
         {{ description }}
       </p>
@@ -33,6 +37,8 @@
 </template>
 
 <script setup>
+import RatingStars from '../common/RatingStars.vue'
+
 defineProps({
   title: { type: String, required: true },
   subtitle: { type: String, default: null },
@@ -41,6 +47,7 @@ defineProps({
   chips: { type: Array, default: () => [] },
   buttonLabel: { type: String, default: 'Voir' },
   buttonIcon: { type: String, default: 'mdi-arrow-right' },
+  rating: { type: Object, default: null },
 })
 
 defineEmits(['click'])

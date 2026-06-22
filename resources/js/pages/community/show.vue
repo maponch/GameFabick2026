@@ -70,6 +70,14 @@
               <v-icon size="small" class="me-2">mdi-content-duplicate</v-icon>
               Basé sur <strong>{{ project.template.name }}</strong>
             </div>
+            <div class="mb-3">
+              <p class="text-body-2 mb-1">Note</p>
+              <RatingStars :average="project.average_rating ?? 0" :count="project.ratings_count ?? 0"
+                :my-rating="project.my_rating" :readonly="false" size="default" @rate="rateProject"
+                @clear="clearRating" />
+            </div>
+
+            <v-divider class="my-4" />
 
             <v-divider class="my-4" />
 
@@ -116,6 +124,7 @@ import { api } from '../../api'
 import PrintableCards from '../../components/projects/PrintableCards.vue'
 import PrintableCheatsheet from '../../components/projects/PrintableCheatsheet.vue'
 import html2pdf from 'html2pdf.js'
+import RatingStars from '../../components/common/RatingStars.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -235,6 +244,19 @@ async function duplicate() {
   } finally {
     duplicating.value = false
   }
+}
+async function rateProject(score) {
+  try {
+    await api.post('/ratings', { project_id: project.value.id, score })
+    showSuccess('Note enregistrée.')
+    await loadProject()
+  } catch (e) {
+    showError('Erreur lors de la notation.')
+  }
+}
+
+async function clearRating() {
+  showError('Pour modifier votre note, cliquez sur une autre étoile.')
 }
 function visibleFields(card) {
   return schema.filter(field => {

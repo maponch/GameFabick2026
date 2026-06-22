@@ -38,7 +38,8 @@
         <ProjectCard :title="project.name"
           :subtitle="project.author?.username ? `par ${project.author.username}` : null"
           :description="project.description" :type-label="project.type" :chips="buildChips(project)"
-          button-label="Voir le projet" @click="goToProject(project.id)" />
+          :rating="{ average: project.average_rating, count: project.ratings_count }" button-label="Voir le projet"
+          @click="goToProject(project.id)" />
       </v-col>
     </v-row>
   </v-container>
