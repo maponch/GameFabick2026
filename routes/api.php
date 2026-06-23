@@ -71,6 +71,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/ratings', [\App\Http\Controllers\Api\User\RatingController::class, 'store']);
     Route::delete('/ratings/{rating}', [\App\Http\Controllers\Api\User\RatingController::class, 'destroy']);
+
+    Route::get('/templates/{template}/comments', [\App\Http\Controllers\Api\User\CommentController::class, 'indexForTemplate']);
+    Route::get('/projects/{project}/comments', [\App\Http\Controllers\Api\User\CommentController::class, 'indexForProject']);
+    Route::post('/comments', [\App\Http\Controllers\Api\User\CommentController::class, 'store']);
+    Route::delete('/comments/{comment}', [\App\Http\Controllers\Api\User\CommentController::class, 'destroy']);
 });
 
 Route::post('/2fa/verify', [TwoFactorController::class, 'verify']);

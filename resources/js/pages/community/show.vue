@@ -49,6 +49,8 @@
               </v-col>
             </v-row>
           </v-card>
+          <CommentsAccordion :project-id="project.id" :current-user-id="currentUserId" @error="showError"
+            @success="showSuccess" />
         </v-col>
 
         <v-col cols="12" md="4">
@@ -121,13 +123,16 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '../../api'
+import { getUser } from '../../router'
 import PrintableCards from '../../components/projects/PrintableCards.vue'
 import PrintableCheatsheet from '../../components/projects/PrintableCheatsheet.vue'
 import html2pdf from 'html2pdf.js'
 import RatingStars from '../../components/common/RatingStars.vue'
+import CommentsAccordion from '../../components/common/CommentsAccordion.vue'
 
 const router = useRouter()
 const route = useRoute()
+const currentUserId = ref(null)
 const projectId = route.params.id
 
 const project = ref(null)
@@ -169,6 +174,13 @@ function formatFieldValue(field, value) {
 
 function showSuccess(msg) { snackbar.value = { show: true, message: msg, color: 'success', timeout: 3000 } }
 function showError(msg, timeout = 3000) { snackbar.value = { show: true, message: msg, color: 'error', timeout } }
+
+function showErrorComment(msg) {
+  snackbar.value = { show: true, message: msg, color: 'error' }
+}
+function showSuccessComment(msg) {
+  snackbar.value = { show: true, message: msg, color: 'success' }
+}
 
 async function loadProject() {
   loading.value = true
@@ -269,7 +281,11 @@ function visibleFields(card) {
   })
 }
 
-onMounted(loadProject)
+onMounted(async () => {
+  const u = await getUser()
+  currentUserId.value = u?.id ?? null
+  loadProject()
+})
 </script>
 
 <style scoped>

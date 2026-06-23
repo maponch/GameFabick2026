@@ -107,6 +107,9 @@
               </v-card>
             </v-window-item>
           </v-window>
+          <CommentsAccordion :project-id="project.id" :current-user-id="currentUserId" @error="showErrorComment"
+            @success="showSuccessComment" />
+
         </v-col>
 
         <!-- Sidebar droite : actions persistantes -->
@@ -175,14 +178,18 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { api } from '../../api'
+import { getUser } from '../../router'
 import html2pdf from 'html2pdf.js'
 import PrintableCards from '../../components/projects/PrintableCards.vue'
 import PrintableCheatsheet from '../../components/projects/PrintableCheatsheet.vue'
 import { cardShortLabel, cardColor } from '../../constants/classicDeck' 
 import RatingStars from '../../components/common/RatingStars.vue'
+import CommentsAccordion from '../../components/common/CommentsAccordion.vue'
 
 const router = useRouter()
 const route = useRoute()
+
+const currentUserId = ref(null)
 
 const project = ref(null)
 const loading = ref(true)
@@ -194,6 +201,13 @@ const snackbar = ref({ show: false, message: '', color: 'success' })
 
 const printableCardsRef = ref(null)
 const printableCheatsheetRef = ref(null)
+
+function showErrorComment(msg) {
+  snackbar.value = { show: true, message: msg, color: 'error' }
+}
+function showSuccessComment(msg) {
+  snackbar.value = { show: true, message: msg, color: 'success' }
+}
 
 async function loadProject() {
   try {
@@ -289,7 +303,11 @@ function clearRating() {
   snackbar.value = { show: true, message: 'Pour modifier, cliquez sur une autre étoile.', color: 'info' }
 }
 
-onMounted(loadProject)
+onMounted(async () => {
+  const u = await getUser()
+  currentUserId.value = u?.id ?? null
+  loadProject() 
+})
 </script>
 <style scoped>
 .custom-fields {

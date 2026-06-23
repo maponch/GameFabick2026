@@ -85,5 +85,8 @@ class GameTemplate extends Model
     {
         return $this->ratings()->count();
     }
-    
+    public function comments()
+    {
+        return $this->hasMany(Comment::class, 'template_id');
+    }
 }

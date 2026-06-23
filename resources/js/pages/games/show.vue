@@ -63,6 +63,8 @@
               </v-col>
             </v-row>
           </v-card>
+          <CommentsAccordion :template-id="template.id" :current-user-id="currentUserId" @error="showError"
+            @success="showSuccess" />
         </v-col>
 
         <!-- Configuration -->
@@ -148,11 +150,15 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { getUser } from '../../router'
 import { api } from '../../api'
 import RatingStars from '../../components/common/RatingStars.vue'
+import CommentsAccordion from '../../components/common/CommentsAccordion.vue'
 
 const router = useRouter()
 const route = useRoute()
+
+const currentUserId = ref(null)
 
 const template = ref(null)
 const loading = ref(true)
@@ -175,6 +181,13 @@ const canGenerate = computed(() => {
 const supportsCartesClassiques = computed(() =>
   template.value?.formats?.some(f => f.slug === 'cartes-classiques') ?? false
 )
+function showError(msg) {
+  snackbar.value = { show: true, message: msg, color: 'error' }
+}
+
+function showSuccess(msg) {
+  snackbar.value = { show: true, message: msg, color: 'success' }
+}
 
 async function loadTemplate() {
   try {
@@ -262,7 +275,11 @@ function clearRating() {
   snackbar.value = { show: true, message: 'Pour modifier, cliquez sur une autre étoile.', color: 'info' }
 }
 
-onMounted(loadTemplate)
+onMounted(async () => {
+  const u = await getUser()
+  currentUserId.value = u?.id ?? null
+  loadTemplate()
+})
 </script>
 
 <style scoped>
