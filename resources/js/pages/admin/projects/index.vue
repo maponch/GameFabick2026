@@ -19,7 +19,7 @@
       loading-text="Chargement…" :items-per-page="25" :items-per-page-options="[10, 25, 50, 100]">
 
       <template #item.name="{ item }">
-        <RouterLink :to="`/projects/${item.id}`" class="text-decoration-none font-weight-medium">
+        <RouterLink :to="`/community/${item.id}`" class="text-decoration-none font-weight-medium">
           {{ item.name }}
         </RouterLink>
       </template>

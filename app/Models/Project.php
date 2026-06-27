@@ -6,10 +6,12 @@ use App\Models\GameFormat;
 use App\Models\ProjectObject;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Concerns\Publishable;
+use App\Models\Concerns\Reportable;
 
 class Project extends Model
 {
     use Publishable;
+    use Reportable;
 
     public const STATUS_DRAFT     = 'draft';
     public const STATUS_PUBLISHED = 'published';

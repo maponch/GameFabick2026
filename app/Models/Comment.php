@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\Reportable;
 
 class Comment extends Model
 {
+    use Reportable; 
+
     protected $fillable = ['user_id', 'template_id', 'project_id', 'content'];
 
     public function user()

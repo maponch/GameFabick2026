@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\Admin\ObjectController as AdminObjectController;
 use App\Http\Controllers\Api\Admin\Reference\TypeController as AdminTypeController;
 use App\Http\Controllers\Api\Admin\Reference\GameFormatController as AdminGameFormatController;
 use App\Http\Controllers\Api\Admin\Reference\CardLayoutController as AdminCardLayoutController;
+use App\Http\Controllers\Api\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\Api\Game\GameTemplateController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\Api\TwoFactorController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\User\ProjectController as UserProjectController;
 use App\Http\Controllers\Api\User\ProjectObjectController as UserProjectObjectController;
+use App\Http\Controllers\Api\User\ReportController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -76,6 +78,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/projects/{project}/comments', [\App\Http\Controllers\Api\User\CommentController::class, 'indexForProject']);
     Route::post('/comments', [\App\Http\Controllers\Api\User\CommentController::class, 'store']);
     Route::delete('/comments/{comment}', [\App\Http\Controllers\Api\User\CommentController::class, 'destroy']);
+
+    Route::post('/reports', [ReportController::class, 'store'])->name('reports.store');
+
 });
 
 Route::post('/2fa/verify', [TwoFactorController::class, 'verify']);
@@ -129,5 +134,9 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::get('/card-layouts', [AdminCardLayoutController::class, 'index']);
 
     Route::get('/projects', [\App\Http\Controllers\Api\Admin\ModerationController::class, 'index']);
-Route::post('/projects/{project}/moderate', [\App\Http\Controllers\Api\Admin\ModerationController::class, 'moderate']);
+    Route::post('/projects/{project}/moderate', [\App\Http\Controllers\Api\Admin\ModerationController::class, 'moderate']);
+
+    Route::get('/reports', [AdminReportController::class, 'index'])->name('admin.reports.index');
+    Route::get('/reports/{report}', [AdminReportController::class, 'show'])->name('admin.reports.show');
+    Route::patch('/reports/{report}', [AdminReportController::class, 'update'])->name('admin.reports.update');
 });

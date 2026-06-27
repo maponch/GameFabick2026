@@ -63,6 +63,16 @@ class ModerationController extends Controller
 
         $project->update(['status' => Project::STATUS_ARCHIVED]);
 
+        \App\Models\Report::where('reportable_type', Project::class)
+            ->where('reportable_id', $project->id)
+            ->where('status', \App\Models\Report::STATUS_PENDING)
+            ->update([
+                'status'      => \App\Models\Report::STATUS_REVIEWED,
+                'reviewed_by' => $request->user()->id,
+                'reviewed_at' => now(),
+                'admin_note'  => 'Projet archivé via /admin/projects.',
+            ]);
+
         $project->loadMissing('user');
         Mail::to($project->user->email)->send(new ProjectModerated($project, $project->user, $action));
 

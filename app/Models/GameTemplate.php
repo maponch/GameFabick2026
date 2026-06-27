@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Concerns\Publishable;
+use App\Models\Concerns\Reportable;
 
 class GameTemplate extends Model
 {
     use Publishable; 
+    use Reportable;
 
     public const STATUS_DRAFT = 'draft';
     public const STATUS_PUBLISHED = 'published';

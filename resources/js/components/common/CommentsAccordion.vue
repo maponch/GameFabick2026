@@ -35,12 +35,18 @@
           <v-card v-for="c in otherComments" :key="c.id" variant="outlined" class="pa-3 mb-2">
             <div class="d-flex align-center justify-space-between mb-1">
               <strong>{{ c.user.username }}</strong>
-              <span class="text-caption text-medium-emphasis">{{ formatDate(c.created_at) }}</span>
+              <div class="d-flex align-center ga-2">
+                <span class="text-caption text-medium-emphasis">{{ formatDate(c.created_at) }}</span>
+                <v-btn v-if="c.user_id !== currentUserId" icon="mdi-flag-outline" variant="text" size="x-small"
+                  color="error" @click="openReport(c.id)" />
+              </div>
             </div>
             <p class="text-body-2 mb-0" style="white-space: pre-wrap">{{ c.content }}</p>
           </v-card>
         </div>
       </v-expansion-panel-text>
+      <ReportModal v-if="reportTargetId" v-model="reportOpen" reportable-type="comment" :reportable-id="reportTargetId"
+        @reported="emit('success', 'Signalement envoyé. Merci, un administrateur examinera votre demande.')" />
     </v-expansion-panel>
 
     <v-dialog v-model="deleteDialog" max-width="440">
@@ -60,6 +66,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { api } from '../../api'
+import ReportModal from './ReportModal.vue'
 
 const props = defineProps({
   templateId: { type: [Number, String], default: null },
@@ -77,6 +84,9 @@ const deleting = ref(false)
 const errors = ref({})
 const draft = ref('')
 const deleteDialog = ref(false)
+
+const reportOpen = ref(false)
+const reportTargetId = ref(null)
 
 const myComment = computed(() => comments.value.find(c => c.user_id === props.currentUserId))
 const otherComments = computed(() => comments.value)
@@ -125,6 +135,10 @@ async function submit() {
   } finally {
     saving.value = false
   }
+}
+function openReport(commentId) {
+  reportTargetId.value = commentId
+  reportOpen.value = true
 }
 
 function askDelete() {

@@ -103,6 +103,13 @@
             <v-alert v-else type="info" variant="tonal" density="compact" class="mt-3">
               L'auteur n'a pas autorisé la duplication de ce projet.
             </v-alert>
+            <template v-if="canReport">
+              <v-divider class="my-4" />
+              <v-btn block variant="text" color="error" size="small" prepend-icon="mdi-flag-outline"
+                @click="reportOpen = true">
+                Signaler ce jeu
+              </v-btn>
+            </template>
           </v-card>
         </v-col>
       </v-row>
@@ -112,7 +119,9 @@
         <PrintableCheatsheet v-if="pdfMode === 'existing_deck'" ref="printableCheatsheetRef" :project="project" />
       </div>
     </template>
-
+    <ReportModal v-if="project" v-model="reportOpen" reportable-type="project" :reportable-id="project.id"
+      :target-label="project.name"
+      @reported="showSuccess('Signalement envoyé. Merci, un administrateur examinera votre demande.')" />
     <v-snackbar v-model="snackbar.show" :color="snackbar.color" :timeout="snackbar.timeout ?? 3000">
       {{ snackbar.message }}
     </v-snackbar>
@@ -129,6 +138,7 @@ import PrintableCheatsheet from '../../components/projects/PrintableCheatsheet.v
 import html2pdf from 'html2pdf.js'
 import RatingStars from '../../components/common/RatingStars.vue'
 import CommentsAccordion from '../../components/common/CommentsAccordion.vue'
+import ReportModal from '../../components/common/ReportModal.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -144,6 +154,7 @@ const printableCheatsheetRef = ref(null)
 const snackbar = ref({ show: false, message: '', color: 'success', timeout: 3000 })
 
 const pdfMode = ref('printable')
+const reportOpen = ref(false)
 
 const availableModes = computed(() => {
   if (!project.value) return []
@@ -157,6 +168,11 @@ const availableModes = computed(() => {
     modes.push({ value: 'existing_deck', label: 'Pense-bête' })
   }
   return modes
+})
+const canReport = computed(() => {
+  if (!currentUserId.value || !project.value) return false
+  const authorId = project.value.author?.id ?? project.value.user_id
+  return authorId !== currentUserId.value
 })
 
 function objectCustomFields(object) {

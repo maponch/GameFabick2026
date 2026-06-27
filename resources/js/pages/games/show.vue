@@ -107,6 +107,11 @@
               prepend-icon="mdi-cards-playing" @click="generateGame">
               Générer mon jeu
             </v-btn>
+            <v-divider class="my-4" />
+            <v-btn block variant="text" color="error" size="small" prepend-icon="mdi-flag-outline"
+              @click="reportOpen = true">
+              Signaler ce modèle
+            </v-btn>
 
           </v-card>
         </v-col>
@@ -139,7 +144,10 @@
       </v-card>
     </v-dialog>
 
-    <!-- Snackbar -->
+    <ReportModal v-if="template" v-model="reportOpen" reportable-type="template" :reportable-id="template.id"
+      :target-label="template.name"
+      @reported="showSuccess('Signalement envoyé. Merci, un administrateur examinera votre demande.')" />
+
     <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000" location="bottom right">
       {{ snackbar.message }}
     </v-snackbar>
@@ -154,6 +162,7 @@ import { getUser } from '../../router'
 import { api } from '../../api'
 import RatingStars from '../../components/common/RatingStars.vue'
 import CommentsAccordion from '../../components/common/CommentsAccordion.vue'
+import ReportModal from '../../components/common/ReportModal.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -169,6 +178,8 @@ const snackbar = ref({ show: false, message: '', color: 'success' })
 const similarProjects = ref([])
 const similarDialog = ref(false)
 
+const reportOpen = ref(false)
+
 const config = ref({
   title: '',
   mode: 'printable',
@@ -181,6 +192,7 @@ const canGenerate = computed(() => {
 const supportsCartesClassiques = computed(() =>
   template.value?.formats?.some(f => f.slug === 'cartes-classiques') ?? false
 )
+
 function showError(msg) {
   snackbar.value = { show: true, message: msg, color: 'error' }
 }
