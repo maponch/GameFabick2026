@@ -7,20 +7,10 @@
       </v-btn>
     </div>
 
-    <v-card class="pa-4 mb-4">
-      <div class="d-flex flex-wrap ga-3 align-end">
-        <v-text-field v-model="search" prepend-inner-icon="mdi-magnify" label="Rechercher" variant="outlined"
-          density="compact" hide-details clearable style="max-width: 280px;" />
-        <v-select v-model="statusFilter" :items="statusOptions" label="Statut" variant="outlined" density="compact"
-          hide-details clearable style="max-width: 200px;" />
-        <v-select v-model="completenessFilter" :items="completenessOptions" label="Qualité" variant="outlined"
-          density="compact" hide-details clearable style="max-width: 200px;" />
-      </div>
-    </v-card>
+    <FilterToolbar v-model="filterState" :filters="filterConfig" :defaults="defaults" />
 
     <v-data-table :headers="headers" :items="filteredProjects" :loading="loading" :no-data-text="emptyMessage"
       loading-text="Chargement…" :items-per-page="25" :items-per-page-options="[10, 25, 50, 100]">
-
       <template #item.name="{ item }">
         <RouterLink :to="`/projects/${item.id}`" class="text-decoration-none font-weight-medium">
           {{ item.name }}
@@ -66,6 +56,7 @@
     <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000">
       {{ snackbar.message }}
     </v-snackbar>
+
     <v-dialog v-model="deleteDialog" max-width="440">
       <v-card>
         <v-card-title>Supprimer le projet</v-card-title>
@@ -87,12 +78,11 @@ import { ref, computed, onMounted } from 'vue'
 import { api } from '../../api'
 import { PROJECT_STATUS } from '../../i18n/status.js'
 import RatingStars from '../../components/common/RatingStars.vue'
+import FilterToolbar from '../../components/common/FilterToolbar.vue'
+import { useFiltersInUrl } from '../../composables/useFiltersInUrl'
 
 const projects = ref([])
 const loading = ref(true)
-const search = ref('')
-const statusFilter = ref(null)
-const completenessFilter = ref(null)
 const snackbar = ref({ show: false, message: '', color: 'success' })
 
 const deleteDialog = ref(false)
@@ -101,15 +91,32 @@ const deleting = ref(false)
 
 const statusConfig = PROJECT_STATUS
 
-const statusOptions = [
-  { title: 'Brouillon', value: 'draft' },
-  { title: 'Publié', value: 'published' },
-  { title: 'Archivé', value: 'archived' },
-]
+const defaults = {
+  search: '',
+  status: null,
+  complete: null,
+  rating_min: null,
+}
+const filterState = useFiltersInUrl(defaults)
 
-const completenessOptions = [
-  { title: 'Complet', value: 'complete' },
-  { title: 'Incomplet', value: 'incomplete' },
+const filterConfig = [
+  { key: 'search', type: 'text', label: 'Rechercher' },
+  {
+    key: 'status', type: 'select', label: 'Statut', options: [
+      { title: 'Brouillon', value: 'draft' },
+      { title: 'Publié', value: 'published' },
+      { title: 'Archivé', value: 'archived' },
+    ]
+  },
+  { key: 'complete', type: 'toggle', label: 'Complet uniquement' },
+  {
+    key: 'rating_min', type: 'select', label: 'Note minimum', options: [
+      { title: '★ 2+', value: 2 },
+      { title: '★ 3+', value: 3 },
+      { title: '★ 4+', value: 4 },
+      { title: '★ 5', value: 5 },
+    ]
+  },
 ]
 
 const headers = [
@@ -125,26 +132,20 @@ const headers = [
 ]
 
 const filteredProjects = computed(() => {
+  const f = filterState.value
   let list = projects.value
 
-  if (search.value?.trim()) {
-    const s = search.value.toLowerCase().trim()
+  if (f.search?.trim()) {
+    const s = f.search.toLowerCase().trim()
     list = list.filter(p =>
       p.name?.toLowerCase().includes(s) ||
       p.description?.toLowerCase().includes(s) ||
       p.template?.toLowerCase().includes(s)
     )
   }
-
-  if (statusFilter.value) {
-    list = list.filter(p => p.status === statusFilter.value)
-  }
-
-  if (completenessFilter.value === 'complete') {
-    list = list.filter(p => p.publishable?.ready)
-  } else if (completenessFilter.value === 'incomplete') {
-    list = list.filter(p => !p.publishable?.ready)
-  }
+  if (f.status) list = list.filter(p => p.status === f.status)
+  if (f.complete === true) list = list.filter(p => p.publishable?.ready === true)
+  if (f.rating_min) list = list.filter(p => (p.average_rating ?? 0) >= f.rating_min)
 
   return list
 })
@@ -177,10 +178,12 @@ async function loadProjects() {
     loading.value = false
   }
 }
+
 function askDelete(item) {
   projectToDelete.value = item
   deleteDialog.value = true
 }
+
 async function confirmDelete() {
   if (!projectToDelete.value) return
   deleting.value = true
@@ -195,5 +198,6 @@ async function confirmDelete() {
     deleting.value = false
   }
 }
+
 onMounted(loadProjects)
 </script>
