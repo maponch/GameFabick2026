@@ -28,6 +28,7 @@
           <v-list-item prepend-icon="mdi-view-dashboard" title="Dashboard" to="/admin" />
           <v-list-item prepend-icon="mdi-cards-playing" title="Templates de jeu" to="/admin/templates" />
           <v-list-item prepend-icon="mdi-shield-alert" title="Modération projets" to="/admin/projects" />
+          <v-list-item prepend-icon="mdi-flag" title="Signalements" to="/admin/reports" />
           <v-list-item prepend-icon="mdi-format-list-bulleted-type" title="Référentiels" to="/admin/references" />
           </v-list>
         </v-menu>
@@ -65,6 +66,8 @@
         to="/admin/templates" @click="drawer = false" />
       <v-list-item v-if="user.role === 'admin'" prepend-icon="mdi-shield-alert" title="Modération projets"
         to="/admin/projects" @click="drawer = false" />
+        <v-list-item v-if="user.role === 'admin'" prepend-icon="mdi-flag" title="Signalements" to="/admin/reports"
+        @click="drawer = false" />
       <v-list-item v-if="user.role === 'admin'" prepend-icon="mdi-format-list-bulleted-type" title="Référentiels"
         to="/admin/references" @click="drawer = false" />
 

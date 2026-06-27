@@ -39,6 +39,8 @@
                 <span class="text-caption text-medium-emphasis">{{ formatDate(c.created_at) }}</span>
                 <v-btn v-if="c.user_id !== currentUserId" icon="mdi-flag-outline" variant="text" size="x-small"
                   color="error" @click="openReport(c.id)" />
+                <v-btn v-if="isAdmin && c.user_id !== currentUserId" icon="mdi-delete" variant="text" size="x-small"
+                  color="error" @click="askAdminDelete(c)" />
               </div>
             </div>
             <p class="text-body-2 mb-0" style="white-space: pre-wrap">{{ c.content }}</p>
@@ -47,6 +49,20 @@
       </v-expansion-panel-text>
       <ReportModal v-if="reportTargetId" v-model="reportOpen" reportable-type="comment" :reportable-id="reportTargetId"
         @reported="emit('success', 'Signalement envoyé. Merci, un administrateur examinera votre demande.')" />
+        <v-dialog v-model="adminDeleteDialog" max-width="440">
+        <v-card>
+          <v-card-title>Supprimer le commentaire</v-card-title>
+          <v-card-text>
+            Supprimer le commentaire de <strong>{{ commentToDelete?.user?.username }}</strong> ?
+            Cette action est définitive.
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn variant="text" @click="adminDeleteDialog = false">Annuler</v-btn>
+            <v-btn color="error" :loading="adminDeleting" @click="confirmAdminDelete">Supprimer</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </v-expansion-panel>
 
     <v-dialog v-model="deleteDialog" max-width="440">
@@ -72,6 +88,7 @@ const props = defineProps({
   templateId: { type: [Number, String], default: null },
   projectId: { type: [Number, String], default: null },
   currentUserId: { type: Number, required: true },
+  isAdmin: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['error', 'success'])
@@ -87,6 +104,10 @@ const deleteDialog = ref(false)
 
 const reportOpen = ref(false)
 const reportTargetId = ref(null)
+
+const adminDeleteDialog = ref(false)
+const commentToDelete = ref(null)
+const adminDeleting = ref(false)
 
 const myComment = computed(() => comments.value.find(c => c.user_id === props.currentUserId))
 const otherComments = computed(() => comments.value)
@@ -144,7 +165,6 @@ function openReport(commentId) {
 function askDelete() {
   deleteDialog.value = true
 }
-
 async function confirmDelete() {
   if (!myComment.value) return
   deleting.value = true
@@ -158,6 +178,25 @@ async function confirmDelete() {
     emit('error', 'Erreur lors de la suppression.')
   } finally {
     deleting.value = false
+  }
+}
+function askAdminDelete(comment) {
+  commentToDelete.value = comment
+  adminDeleteDialog.value = true
+}
+async function confirmAdminDelete() {
+  if (!commentToDelete.value) return
+  adminDeleting.value = true
+  try {
+    await api.delete(`/comments/${commentToDelete.value.id}`)
+    emit('success', 'Commentaire supprimé.')
+    adminDeleteDialog.value = false
+    commentToDelete.value = null
+    await loadComments()
+  } catch {
+    emit('error', 'Erreur lors de la suppression.')
+  } finally {
+    adminDeleting.value = false
   }
 }
 

@@ -63,8 +63,8 @@
               </v-col>
             </v-row>
           </v-card>
-          <CommentsAccordion :template-id="template.id" :current-user-id="currentUserId" @error="showError"
-            @success="showSuccess" />
+          <CommentsAccordion :template-id="template.id" :current-user-id="currentUserId" :is-admin="isAdmin"
+            @error="showError" @success="showSuccess" />
         </v-col>
 
         <!-- Configuration -->
@@ -168,6 +168,7 @@ const router = useRouter()
 const route = useRoute()
 
 const currentUserId = ref(null)
+const isAdmin = ref(false)
 
 const template = ref(null)
 const loading = ref(true)
@@ -283,13 +284,20 @@ async function rateTemplate(score) {
   }
 }
 
-function clearRating() {
-  snackbar.value = { show: true, message: 'Pour modifier, cliquez sur une autre étoile.', color: 'info' }
+async function clearRating() {
+  try {
+    await api.delete('/ratings', { data: { template_id: template.value.id } })
+    snackbar.value = { show: true, message: 'Note retirée.', color: 'success' }
+    await loadTemplate()
+  } catch {
+    snackbar.value = { show: true, message: 'Erreur lors du retrait de la note.', color: 'error' }
+  }
 }
 
 onMounted(async () => {
   const u = await getUser()
   currentUserId.value = u?.id ?? null
+  isAdmin.value = u?.role === 'admin'
   loadTemplate()
 })
 </script>

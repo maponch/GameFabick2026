@@ -49,8 +49,8 @@
               </v-col>
             </v-row>
           </v-card>
-          <CommentsAccordion :project-id="project.id" :current-user-id="currentUserId" @error="showError"
-            @success="showSuccess" />
+          <CommentsAccordion :project-id="project.id" :current-user-id="currentUserId" :is-admin="isAdmin"
+            @error="showError" @success="showSuccess" />
         </v-col>
 
         <v-col cols="12" md="4">
@@ -155,6 +155,8 @@ const snackbar = ref({ show: false, message: '', color: 'success', timeout: 3000
 
 const pdfMode = ref('printable')
 const reportOpen = ref(false)
+
+const isAdmin = ref(false)
 
 const availableModes = computed(() => {
   if (!project.value) return []
@@ -284,7 +286,13 @@ async function rateProject(score) {
 }
 
 async function clearRating() {
-  showError('Pour modifier votre note, cliquez sur une autre étoile.')
+  try {
+    await api.delete('/ratings', { data: { template_id: template.value.id } })
+    snackbar.value = { show: true, message: 'Note retirée.', color: 'success' }
+    await loadTemplate()
+  } catch {
+    snackbar.value = { show: true, message: 'Erreur lors du retrait de la note.', color: 'error' }
+  }
 }
 function visibleFields(card) {
   return schema.filter(field => {
@@ -300,6 +308,7 @@ function visibleFields(card) {
 onMounted(async () => {
   const u = await getUser()
   currentUserId.value = u?.id ?? null
+  isAdmin.value = u?.role === 'admin'
   loadProject()
 })
 </script>

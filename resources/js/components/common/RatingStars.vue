@@ -62,7 +62,11 @@ function starColor(n) {
 }
 
 function onStarClick(n) {
-  emit('rate', n)
+  if (props.myRating === n) {
+    emit('clear')
+  } else {
+    emit('rate', n)
+  }
 }
 
 function onClear() {

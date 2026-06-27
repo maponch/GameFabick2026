@@ -61,12 +61,11 @@ class CommentController extends Controller
 
     public function destroy(Request $request, Comment $comment)
     {
-        if ($comment->user_id !== $request->user()->id) {
+        $user = $request->user();
+        if ($comment->user_id !== $user->id && $user->role !== 'admin') {
             return response()->json(['message' => 'Action non autorisée.'], 403);
         }
-
         $comment->delete();
-
         return response()->json(null, 204);
     }
 

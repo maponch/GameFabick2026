@@ -43,4 +43,18 @@ class RatingController extends Controller
 
         return response()->json(null, 204);
     }
+    public function clear(Request $request)
+    {
+        $data = $request->validate([
+            'template_id' => ['nullable', 'integer', 'exists:game_templates,id', 'required_without:project_id'],
+            'project_id'  => ['nullable', 'integer', 'exists:projects,id', 'required_without:template_id'],
+        ]);
+
+        Rating::where('user_id', $request->user()->id)
+            ->where('template_id', $data['template_id'] ?? null)
+            ->where('project_id', $data['project_id'] ?? null)
+            ->delete();
+
+        return response()->json(null, 204);
+    }
 }
