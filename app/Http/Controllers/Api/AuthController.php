@@ -134,6 +134,10 @@ class AuthController extends Controller
             'email'         => 'required|email|unique:users,email',
             'password'      => 'required|string|min:8|confirmed',
             'profile_photo' => 'nullable|image|mimes:jpeg,png,webp|max:2048',
+            'cgu_accepted'  => 'required|accepted',
+        ], [
+            'cgu_accepted.accepted' => 'Vous devez accepter les CGU pour créer un compte.',
+            'cgu_accepted.required' => 'Vous devez accepter les CGU pour créer un compte.',
         ]);
 
         // ✅ Vérifie si l'email est banni définitivement
@@ -156,6 +160,8 @@ class AuthController extends Controller
             'email'         => $data['email'],
             'password'      => $data['password'],
             'profile_photo' => $data['profile_photo'] ?? null,
+            'cgu_accepted_at'      => now(),
+            'cgu_version_accepted' => config('app.cgu_version'),
         ]);
 
         Auth::login($user);

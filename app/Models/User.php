@@ -30,6 +30,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'two_factor_enabled',
         'two_factor_recovery_codes',
         'deletion_initiator',
+        'cgu_accepted_at',
+        'cgu_version_accepted',
     ];
     public function isAdmin(): bool
     {
@@ -62,10 +64,11 @@ class User extends Authenticatable implements MustVerifyEmail
             'two_factor_enabled' => 'boolean',
             'two_factor_recovery_codes' => 'array',
             'two_factor_secret' => 'encrypted',
+            'cgu_accepted_at' => 'datetime',
         ];
     }
-    protected $appends = ['photo_profile_url'];
-
+    protected $appends = ['photo_profile_url', 'cgu_needs_acceptance'];
+    
     public function getPhotoProfileUrlAttribute()
     {
         return $this->profile_photo
@@ -137,5 +140,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function assets()
     {
         return $this->hasMany(Asset::class);
+    }
+    public function getCguNeedsAcceptanceAttribute(): bool
+    {
+        $currentVersion = config('app.cgu_version');
+        return $this->cgu_version_accepted !== $currentVersion;
     }
 }

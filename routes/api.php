@@ -34,7 +34,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/email/send-otp',  [EmailVerificationController::class, 'send']);
     Route::post('/email/verify',    [EmailVerificationController::class, 'verify']);
-    
+
+    Route::post('/account/accept-cgu', [UserController::class, 'acceptCgu']);    
 
         // Edition du profil
     Route::patch('/user/username', [UserController::class, 'updateUsername']);
@@ -81,6 +82,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/comments/{comment}', [\App\Http\Controllers\Api\User\CommentController::class, 'destroy']);
 
     Route::post('/reports', [ReportController::class, 'store'])->name('reports.store');
+
+    Route::get('/account/export', [UserController::class, 'exportData']);
 
 });
 

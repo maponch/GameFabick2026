@@ -1,31 +1,92 @@
 <template>
-  <v-footer class="text-center d-flex flex-column ga-2 py-4" color="indigo-lighten-1">
-    <div class="d-flex ga-3">
-      <v-btn v-for="icon in icons" :key="icon" :icon="icon" density="comfortable" variant="text"></v-btn>
-    </div>
+  <v-footer color="indigo-lighten-1" class="pa-0">
+    <v-container max-width="1200" class="py-6">
+      <v-row>
+        <v-col cols="12" md="4">
+          <div class="text-h6 font-weight-bold mb-2">GameFabrick 🎲</div>
+          <p class="text-body-2 opacity-80">
+            Générez des jeux de société personnalisés à partir de templates
+            ou créez les vôtres. Imprimez vos cartes ou utilisez un jeu de
+            cartes classique avec un pense-bête.
+          </p>
+        </v-col>
 
-    <v-divider class="my-2" thickness="2" width="50"></v-divider>
+        <v-col cols="6" md="3">
+          <div class="text-subtitle-2 font-weight-bold mb-2">Navigation</div>
+          <ul class="footer-links">
+            <li>
+              <RouterLink to="/community">Galerie</RouterLink>
+            </li>
+            <li>
+              <RouterLink to="/games">Jeux</RouterLink>
+            </li>
+            <li>
+              <RouterLink to="/projects">Mes projets</RouterLink>
+            </li>
+          </ul>
+        </v-col>
 
-    <div class="text-body-small font-weight-regular opacity-60">
-      Phasellus feugiat arcu sapien, et iaculis ipsum elementum sit amet. Mauris cursus commodo interdum. Praesent ut
-      risus eget metus luctus accumsan id ultrices nunc. Sed at orci sed massa consectetur dignissim a sit amet dui.
-      Duis commodo vitae velit et faucibus. Morbi vehicula lacinia malesuada. Nulla placerat augue vel ipsum ultrices,
-      cursus iaculis dui sollicitudin. Vestibulum eu ipsum vel diam elementum tempor vel ut orci. Orci varius natoque
-      penatibus et magnis dis parturient montes, nascetur ridiculus mus.
-    </div>
+        <v-col cols="6" md="3">
+          <div class="text-subtitle-2 font-weight-bold mb-2">Informations</div>
+          <ul class="footer-links">
+            <li>
+              <RouterLink to="/cgu">CGU</RouterLink>
+            </li>
+          </ul>
+        </v-col>
 
-    <v-divider></v-divider>
+        <v-col cols="12" md="2">
+          <div class="text-subtitle-2 font-weight-bold mb-2">Suivez-nous</div>
+          <div class="d-flex ga-1">
+            <v-btn v-for="s in socials" :key="s.icon" :icon="s.icon" :href="s.url" target="_blank" rel="noopener"
+              density="comfortable" variant="text" size="small" />
+          </div>
+        </v-col>
+      </v-row>
 
-    <div>
-      {{ new Date().getFullYear() }} — <strong>Vuetify</strong>
-    </div>
+      <v-divider class="my-4 opacity-30" />
+
+      <div class="d-flex flex-wrap justify-space-between align-center ga-2 text-body-2 opacity-80">
+        <div>© {{ year }} — GameFabrick</div>
+        <div class="text-caption">TFE — Projet de fin d'études</div>
+      </div>
+    </v-container>
   </v-footer>
 </template>
+
 <script setup>
-const icons = [
-  'mdi-facebook',
-  'mdi-twitter',
-  'mdi-linkedin',
-  'mdi-instagram',
+import { computed } from 'vue'
+
+const year = computed(() => new Date().getFullYear())
+
+const socials = [
+  { icon: 'mdi-facebook', url: '#' },
+  { icon: 'mdi-twitter', url: '#' },
+  { icon: 'mdi-linkedin', url: '#' },
+  { icon: 'mdi-instagram', url: '#' },
 ]
 </script>
+
+<style scoped>
+.footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-links li {
+  margin-bottom: 0.5rem;
+}
+
+.footer-links a {
+  color: inherit;
+  text-decoration: none;
+  opacity: 0.85;
+  transition: opacity 0.15s;
+}
+
+.footer-links a:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+</style>

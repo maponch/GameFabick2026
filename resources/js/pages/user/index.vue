@@ -82,6 +82,20 @@
           <v-divider class="my-3" />
           <v-chip color="primary" prepend-icon="mdi-shield-crown" size="small">Administrateur</v-chip>
         </template>
+        <v-divider class="my-4" />
+
+        <div class="text-caption font-weight-bold mb-2">
+          MES DONNÉES (RGPD)
+        </div>
+
+        <p class="text-body-2 text-medium-emphasis mb-2">
+          Téléchargez l'ensemble des données personnelles que GameFabrick détient sur vous,
+          au format JSON.
+        </p>
+
+        <v-btn block variant="tonal" prepend-icon="mdi-download" :loading="exportingData" @click="exportData">
+          Exporter mes données
+        </v-btn>
 
         <!-- Suppression de compte -->
         <v-divider class="my-4" />
@@ -169,6 +183,8 @@ const disable2faErrors = ref({})
 const disable2faSaving = ref(false)
 const showDisablePassword = ref(false)
 
+const exportingData = ref(false)
+
 async function onTwoFactorEnabled() {
   const { data } = await api.get('/user')
   user.value = data
@@ -220,6 +236,31 @@ function showError(message) {
 function onUserUpdated(updatedUser) {
   user.value = updatedUser
   showSuccess('Profil mis à jour.')
+}
+async function exportData() {
+  exportingData.value = true
+  try {
+    const response = await api.get('/account/export', { responseType: 'blob' })
+    const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/json' }))
+
+    const disposition = response.headers['content-disposition'] ?? ''
+    const match = disposition.match(/filename="(.+)"/)
+    const filename = match?.[1] ?? `gamefabrick-export-${Date.now()}.json`
+
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    window.URL.revokeObjectURL(url)
+
+    showSuccess('Données exportées.')
+  } catch {
+    showError('Erreur lors de l\'export.')
+  } finally {
+    exportingData.value = false
+  }
 }
 
 onMounted(async () => {

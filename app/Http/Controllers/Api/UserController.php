@@ -130,4 +130,105 @@ class UserController extends Controller
 
         return response()->json(['message' => 'Compte restauré.', 'user' => $user->fresh()]);
     }
+    public function acceptCgu(Request $request)
+    {
+        $request->user()->update([
+            'cgu_accepted_at'      => now(),
+            'cgu_version_accepted' => config('app.cgu_version'),
+        ]);
+
+        return response()->json(['user' => $request->user()->fresh()]);
+    }
+    public function exportData(Request $request)
+{
+    $user = $request->user();
+
+    $export = [
+        'export_metadata' => [
+            'generated_at' => now()->toIso8601String(),
+            'version'      => '1.0',
+            'user_id'      => $user->id,
+        ],
+        'account' => [
+            'id'                   => $user->id,
+            'username'             => $user->username,
+            'email'                => $user->email,
+            'role'                 => $user->role,
+            'email_verified_at'    => $user->email_verified_at,
+            'cgu_accepted_at'      => $user->cgu_accepted_at,
+            'cgu_version_accepted' => $user->cgu_version_accepted,
+            'two_factor_enabled'   => $user->two_factor_enabled,
+            'two_factor_method'    => $user->two_factor_method,
+            'created_at'           => $user->created_at,
+            'updated_at'           => $user->updated_at,
+        ],
+        'projects' => $user->projects()
+            ->with(['type:id,name', 'template:id,name', 'objects', 'formats:id,name,slug'])
+            ->get()
+            ->map(fn ($p) => [
+                'id'              => $p->id,
+                'name'            => $p->name,
+                'description'     => $p->description,
+                'rules'           => $p->rules,
+                'mode'            => $p->mode,
+                'status'          => $p->status,
+                'min_players'     => $p->min_players,
+                'max_players'     => $p->max_players,
+                'duration_min'    => $p->duration_min,
+                'duration_max'    => $p->duration_max,
+                'allow_duplication' => $p->allow_duplication,
+                'type'            => $p->type?->name,
+                'based_on_template' => $p->template?->name,
+                'formats'         => $p->formats->pluck('name'),
+                'objects'         => $p->objects->map(fn ($o) => [
+                    'name'         => $o->name,
+                    'description'  => $o->description,
+                    'quantity'     => $o->quantity,
+                    'custom_data'  => $o->custom_data,
+                ]),
+                'card_schema'     => $p->card_schema,
+                'card_layout'     => $p->card_layout,
+                'created_at'      => $p->created_at,
+                'updated_at'      => $p->updated_at,
+            ]),
+        'comments' => \App\Models\Comment::where('user_id', $user->id)
+            ->with(['project:id,name', 'template:id,name'])
+            ->get()
+            ->map(fn ($c) => [
+                'id'         => $c->id,
+                'content'    => $c->content,
+                'target'     => $c->project_id
+                    ? ['type' => 'project',  'name' => $c->project?->name]
+                    : ['type' => 'template', 'name' => $c->template?->name],
+                'created_at' => $c->created_at,
+                'updated_at' => $c->updated_at,
+            ]),
+        'ratings' => \App\Models\Rating::where('user_id', $user->id)
+            ->with(['project:id,name', 'template:id,name'])
+            ->get()
+            ->map(fn ($r) => [
+                'score'      => $r->score,
+                'target'     => $r->project_id
+                    ? ['type' => 'project',  'name' => $r->project?->name]
+                    : ['type' => 'template', 'name' => $r->template?->name],
+                'created_at' => $r->created_at,
+            ]),
+        'reports_submitted' => \App\Models\Report::where('reporter_id', $user->id)
+            ->get()
+            ->map(fn ($rep) => [
+                'reportable_type' => class_basename($rep->reportable_type),
+                'reportable_id'   => $rep->reportable_id,
+                'reason_code'     => $rep->reason_code,
+                'reason_text'     => $rep->reason_text,
+                'status'          => $rep->status,
+                'created_at'      => $rep->created_at,
+            ]),
+    ];
+
+    $filename = 'gamefabrick-export-' . $user->id . '-' . now()->format('Y-m-d-His') . '.json';
+
+    return response()->json($export, 200, [
+        'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+}
 }

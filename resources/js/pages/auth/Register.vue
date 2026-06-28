@@ -77,9 +77,22 @@
               @click:append-inner="showPasswordConfirm = !showPasswordConfirm" variant="outlined"
               :error-messages="errors.password_confirmation" :disabled="loading" autocomplete="new-password"
               class="mb-4" />
+            <!-- CGU -->
+            <v-checkbox v-model="form.cgu_accepted" :error-messages="errors.cgu_accepted" :disabled="loading"
+              density="compact" hide-details="auto" class="mb-4">
+              <template #label>
+                <span class="text-body-2">
+                  J'accepte les
+                  <RouterLink to="/cgu" target="_blank" class="text-primary">
+                    Conditions Générales d'Utilisation
+                  </RouterLink>
+                </span>
+              </template>
+            </v-checkbox>
 
             <!-- Bouton -->
-            <v-btn block color="primary" size="large" :loading="loading" :disabled="loading" @click="register">
+            <v-btn block color="primary" size="large" :loading="loading" :disabled="loading || !form.cgu_accepted"
+              @click="register">
               S'inscrire
             </v-btn>
 
@@ -112,6 +125,7 @@ const form = ref({
   email: '',
   password: '',
   password_confirmation: '',
+  cgu_accepted: false,
 })
 
 const errors = ref({})
@@ -170,7 +184,8 @@ function validateForm() {
 
   if (form.value.password !== form.value.password_confirmation)
     e.password_confirmation = ['Les mots de passe ne correspondent pas.']
-
+  if (!form.value.cgu_accepted)
+    e.cgu_accepted = ['Vous devez accepter les CGU.']
   return e
 }
 
@@ -194,6 +209,7 @@ async function register() {
     if (photoFile.value) {
       formData.append('profile_photo', photoFile.value)
     }
+    formData.append('cgu_accepted', form.value.cgu_accepted ? '1' : '0')
 
     await api.post('/register', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }

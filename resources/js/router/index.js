@@ -14,6 +14,7 @@ const routes = [
   { path: '/verify-email', component: () => import('../pages/auth/VerifyEmail.vue') },
   { path: '/restore-account', component: () => import('../pages/auth/RestoreAccount.vue') },
   { path: '/2fa-verify', component: () => import('../pages/auth/TwoFactorVerify.vue') },
+  { path: '/cgu', component: () => import('../pages/legal/cgu.vue')},
   {
     path: '/dashboard',
     component: Dashboard,
