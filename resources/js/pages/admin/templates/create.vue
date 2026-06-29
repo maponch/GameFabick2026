@@ -46,7 +46,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { api } from '../../../api'
 import { useRouter } from 'vue-router'
-import TemplateForm from '../../../components/admin/templates/TemplateForm.vue'
+import TemplateForm from '../../../components/common/TemplateForm.vue'
 
 const router = useRouter()
 

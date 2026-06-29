@@ -4,6 +4,10 @@
     <p class="text-body-2 text-medium-emphasis mb-6">
       Choisissez un jeu à personnaliser et générer
     </p>
+    <v-alert type="info" variant="tonal" density="compact" class="mb-4" closable>
+      Pas de modèle qui vous convient ?
+      <RouterLink to="/projects/new" class="font-weight-bold">Créez votre jeu de A à Z</RouterLink>
+    </v-alert>
 
     <FilterToolbar v-model="filterState" :filters="filterConfig" :defaults="defaults" />
 

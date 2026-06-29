@@ -132,6 +132,7 @@ class ProjectController extends Controller
             'duration_max' => $project->duration_max,
             'min_players'  => $project->min_players,
             'max_players'  => $project->max_players,
+            'template_id' => $project->template_id,
             'template'     => $project->template ? [
                 'id'    => $project->template->id,
                 'name'  => $project->template->name,
@@ -188,4 +189,50 @@ class ProjectController extends Controller
 
         return response()->json(['message' => 'Projet supprimé.']);
     }
+    public function storeFree(\Illuminate\Http\Request $request)
+{
+    $data = $request->validate([
+        'name'         => 'required|string|max:191',
+        'description'  => 'nullable|string|max:2000',
+        'type_id'      => 'required|integer|exists:types,id',
+        'min_players'  => 'required|integer|min:1|max:50',
+        'max_players'  => 'required|integer|min:1|max:50|gte:min_players',
+        'duration_min' => 'required|integer|min:1|max:600',
+        'duration_max' => 'required|integer|min:1|max:600|gte:duration_min',
+        'format_ids'   => 'required|array|min:1',
+        'format_ids.*' => 'integer|exists:game_formats,id',
+        'card_layout'  => 'nullable|string|exists:card_layouts,slug',
+    ]);
+
+    $cardSchema = [];
+    if (! empty($data['card_layout'])) {
+        $layout = \App\Models\CardLayout::where('slug', $data['card_layout'])->first();
+        $cardSchema = $layout?->schema ?? [];
+    }
+
+    $project = \App\Models\Project::create([
+        'user_id'           => $request->user()->id,
+        'type_id'           => $data['type_id'],
+        'template_id'       => null,
+        'name'              => $data['name'],
+        'description'       => $data['description'] ?? null,
+        'rules'             => '',
+        'card_schema'       => $cardSchema,
+        'card_layout'       => $data['card_layout'] ?? null,
+        'mode'              => 'printable',
+        'duration_min'      => $data['duration_min'],
+        'duration_max'      => $data['duration_max'],
+        'min_players'       => $data['min_players'],
+        'max_players'       => $data['max_players'],
+        'status'            => \App\Models\Project::STATUS_DRAFT,
+        'allow_duplication' => true,
+    ]);
+
+    $project->formats()->sync($data['format_ids']);
+
+    return response()->json([
+        'id'      => $project->id,
+        'message' => 'Projet créé.',
+    ], 201);
+}
 }

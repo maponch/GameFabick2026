@@ -40,7 +40,8 @@
           <v-expansion-panel-title>Informations générales</v-expansion-panel-title>
           <v-expansion-panel-text>
             <TemplateForm ref="formRef" v-model="form" :types="types" :types-loading="typesLoading" :formats="formats"
-              :formats-loading="formatsLoading" :server-errors="errors" :readonly="isLocked" context="user" />
+              :formats-loading="formatsLoading" :server-errors="errors" :readonly="isLocked" context="user"
+              :inherited-from-template="!!project?.template_id" />
             <div class="d-flex justify-end mt-2">
               <v-btn color="primary" :loading="savingInfos" @click="saveInfos" :disabled="isLocked">
                 Enregistrer les informations
@@ -259,7 +260,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { api } from '../../api'
 import { useRouter, useRoute } from 'vue-router'
-import TemplateForm from '../../components/admin/templates/TemplateForm.vue'
+import TemplateForm from '../../components/common/TemplateForm.vue'
 import ObjectModal from '../../components/admin/templates/ObjectModal.vue'
 import { PROJECT_STATUS } from '../../i18n/status.js'
 

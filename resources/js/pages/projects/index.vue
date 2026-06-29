@@ -1,9 +1,11 @@
 <template>
   <v-container>
-    <div class="d-flex align-center justify-space-between mb-6">
-      <h1 class="text-h4">Mes projets</h1>
-      <v-btn color="primary" prepend-icon="mdi-plus" to="/games">
-        Créer un projet
+    <div class="d-flex ga-2">
+      <v-btn color="primary" prepend-icon="mdi-cards-playing" to="/games">
+        Depuis un modèle
+      </v-btn>
+      <v-btn color="primary" variant="outlined" prepend-icon="mdi-pencil-plus" to="/projects/new">
+        Création libre
       </v-btn>
     </div>
 

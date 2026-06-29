@@ -222,7 +222,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { api } from '../../../api'
 import { useRouter, useRoute } from 'vue-router'
-import TemplateForm from '../../../components/admin/templates/TemplateForm.vue'
+import TemplateForm from '../../../components/common/TemplateForm.vue'
 import ObjectModal from '../../../components/admin/templates/ObjectModal.vue'
 
 const router = useRouter()

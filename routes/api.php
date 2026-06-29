@@ -63,9 +63,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::match(['put', 'patch'], '/projects/{project}/objects/{object}', [UserProjectObjectController::class, 'update']);
     Route::delete('/projects/{project}/objects/{object}', [UserProjectObjectController::class, 'destroy']);
     Route::post('/projects/{project}/play', [\App\Http\Controllers\Api\User\ProjectController::class, 'recordPlay']);
+    Route::post('/projects/free', [\App\Http\Controllers\Api\Game\ProjectController::class, 'storeFree']);
 
     Route::get('/types', [\App\Http\Controllers\Api\Admin\Reference\TypeController::class, 'index']);
     Route::get('/formats', [\App\Http\Controllers\Api\Admin\Reference\GameFormatController::class, 'index']);
+
+    Route::get('/card-layouts', [\App\Http\Controllers\Api\Admin\Reference\CardLayoutController::class, 'index']);
 
     Route::get('/community', [\App\Http\Controllers\Api\User\CommunityController::class, 'index']);
     Route::get('/community/{project}', [\App\Http\Controllers\Api\User\CommunityController::class, 'show']);

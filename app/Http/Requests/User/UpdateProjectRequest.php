@@ -20,6 +20,8 @@ class UpdateProjectRequest extends FormRequest
     {
         return [
             'name'         => ['sometimes', 'required', 'string', 'max:191'],
+            'type_id'      => ['sometimes', 'required', 'integer', 'exists:types,id'],
+            'card_layout'  => ['sometimes', 'nullable', 'string', 'exists:card_layouts,slug'],
             'description'  => ['sometimes', 'nullable', 'string'],
             'rules'        => ['sometimes', 'nullable', 'string'],
             'mode'         => ['sometimes', 'required', 'in:printable,existing_deck'],

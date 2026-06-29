@@ -92,6 +92,11 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/projects/new',
+    component: () => import('../pages/projects/new.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
     path: '/community',
     component: () => import('../pages/community/index.vue'),
     meta: { requiresAuth: true }
