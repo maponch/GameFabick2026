@@ -110,7 +110,9 @@ const commentToDelete = ref(null)
 const adminDeleting = ref(false)
 
 const myComment = computed(() => comments.value.find(c => c.user_id === props.currentUserId))
-const otherComments = computed(() => comments.value)
+const otherComments = computed(() =>
+  comments.value.filter(c => c.user_id !== props.currentUserId)
+)
 
 watch(myComment, (val) => {
   draft.value = val?.content ?? ''

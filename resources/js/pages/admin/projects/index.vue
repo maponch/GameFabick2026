@@ -43,7 +43,7 @@
       </template>
 
       <template #item.actions="{ item }">
-        <v-btn icon="mdi-eye" size="small" variant="text" :to="`/projects/${item.id}`" />
+        <v-btn icon="mdi-eye" size="small" variant="text" :to="`/community/${item.id}`" />
         <v-btn icon="mdi-archive" size="small" variant="text" color="warning" @click="openModerate(item)" />
       </template>
     </v-data-table>

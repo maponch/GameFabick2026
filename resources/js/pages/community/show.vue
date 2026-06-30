@@ -81,8 +81,6 @@
 
             <v-divider class="my-4" />
 
-            <v-divider class="my-4" />
-
             <div v-if="availableModes.length > 1" class="mb-3">
               <p class="text-body-2 mb-2">Mode de génération :</p>
               <v-radio-group v-model="pdfMode" inline density="compact" hide-details>
@@ -193,12 +191,6 @@ function formatFieldValue(field, value) {
 function showSuccess(msg) { snackbar.value = { show: true, message: msg, color: 'success', timeout: 3000 } }
 function showError(msg, timeout = 3000) { snackbar.value = { show: true, message: msg, color: 'error', timeout } }
 
-function showErrorComment(msg) {
-  snackbar.value = { show: true, message: msg, color: 'error' }
-}
-function showSuccessComment(msg) {
-  snackbar.value = { show: true, message: msg, color: 'success' }
-}
 
 async function loadProject() {
   loading.value = true
@@ -287,22 +279,12 @@ async function rateProject(score) {
 
 async function clearRating() {
   try {
-    await api.delete('/ratings', { data: { template_id: template.value.id } })
-    snackbar.value = { show: true, message: 'Note retirée.', color: 'success' }
-    await loadTemplate()
+    await api.delete('/ratings', { data: { project_id: project.value.id } })
+    showSuccess('Note retirée.')
+    await loadProject()
   } catch {
-    snackbar.value = { show: true, message: 'Erreur lors du retrait de la note.', color: 'error' }
+    showError('Erreur lors du retrait de la note.')
   }
-}
-function visibleFields(card) {
-  return schema.filter(field => {
-    const val = card.customData?.[field.key]
-    if (field.type === 'boolean') {
-      if (field.hide_if_false && !val) return false
-      return val !== null && val !== undefined
-    }
-    return val !== null && val !== undefined && val !== ''
-  })
 }
 
 onMounted(async () => {

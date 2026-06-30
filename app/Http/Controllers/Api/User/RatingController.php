@@ -32,17 +32,6 @@ class RatingController extends Controller
             'score'  => $rating->score,
         ]);
     }
-
-    public function destroy(Request $request, Rating $rating)
-    {
-        if ($rating->user_id !== $request->user()->id) {
-            return response()->json(['message' => 'Action non autorisée.'], 403);
-        }
-
-        $rating->delete();
-
-        return response()->json(null, 204);
-    }
     public function clear(Request $request)
     {
         $data = $request->validate([

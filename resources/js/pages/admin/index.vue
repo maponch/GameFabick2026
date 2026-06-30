@@ -30,6 +30,27 @@
         </v-card>
       </v-col>
     </v-row>
+    <!-- ACCÈS RAPIDE -->
+    <v-card class="pa-3 mb-6" variant="tonal" color="grey-lighten-4">
+      <div class="d-flex flex-wrap ga-2 align-center">
+        <span class="text-caption text-medium-emphasis me-2 font-weight-medium">ACCÈS RAPIDE :</span>
+        <v-chip prepend-icon="mdi-cards-playing" variant="elevated" color="primary" link
+          @click="router.push('/admin/templates')">
+          Modèles
+        </v-chip>
+        <v-chip prepend-icon="mdi-shield-alert" variant="elevated" color="warning" link
+          @click="router.push('/admin/projects')">
+          Modération
+        </v-chip>
+        <v-chip prepend-icon="mdi-flag" variant="elevated" color="error" link @click="router.push('/admin/reports')">
+          Signalements
+        </v-chip>
+        <v-chip prepend-icon="mdi-format-list-bulleted-type" variant="elevated" link
+          @click="router.push('/admin/references')">
+          Référentiels
+        </v-chip>
+      </div>
+    </v-card>
 
     <!-- LISTE UTILISATEURS -->
     <v-card>
