@@ -1,8 +1,8 @@
 <template>
   <v-container>
 
-    <v-btn variant="text" prepend-icon="mdi-arrow-left" to="/admin" class="mb-4">
-      Retour au dashboard
+    <v-btn variant="text" prepend-icon="mdi-arrow-left" class="mb-4" @click="$router.back()">
+      Retour
     </v-btn>
 
     <div v-if="loading" class="d-flex justify-center mt-10">

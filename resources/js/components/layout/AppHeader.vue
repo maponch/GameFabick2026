@@ -1,5 +1,4 @@
 <template>
-
   <v-app-bar color="primary" dark>
     <v-btn to="/" variant="text">
       GameFabrick 🎲
@@ -15,9 +14,8 @@
 
     <!-- DESKTOP : SI CONNECTÉ -->
     <template v-if="user && mdAndUp">
-      <v-btn variant="text" to="/dashboard">Dashboard</v-btn>
-      <v-btn variant="text" to="/community">Galerie</v-btn>
-      <v-btn variant="text" to="/games">Jeux</v-btn>
+      <v-btn variant="text" to="/community">Communauté</v-btn>
+      <v-btn variant="text" to="/games">Modèles</v-btn>
       <v-btn variant="text" to="/projects">Mes projets</v-btn>
       <v-btn variant="text" :to="{ name: 'profile' }">Profil</v-btn>
       <v-menu v-if="user.role === 'admin'">
@@ -26,12 +24,12 @@
         </template>
         <v-list>
           <v-list-item prepend-icon="mdi-view-dashboard" title="Dashboard" to="/admin" />
-          <v-list-item prepend-icon="mdi-cards-playing" title="Templates de jeu" to="/admin/templates" />
+          <v-list-item prepend-icon="mdi-cards-playing" title="Modèles" to="/admin/templates" />
           <v-list-item prepend-icon="mdi-shield-alert" title="Modération projets" to="/admin/projects" />
           <v-list-item prepend-icon="mdi-flag" title="Signalements" to="/admin/reports" />
           <v-list-item prepend-icon="mdi-format-list-bulleted-type" title="Référentiels" to="/admin/references" />
-          </v-list>
-        </v-menu>
+        </v-list>
+      </v-menu>
       <v-btn variant="text" :loading="logoutLoading" @click="logout">Logout</v-btn>
     </template>
 
@@ -39,14 +37,11 @@
     <v-btn v-if="!mdAndUp" icon @click="drawer = !drawer">
       <v-icon>mdi-menu</v-icon>
     </v-btn>
-
   </v-app-bar>
 
   <!-- DRAWER MOBILE -->
   <v-navigation-drawer v-model="drawer" temporary location="right">
-
     <v-list-item title="GameFabrick 🎲" class="py-4" />
-
     <v-divider />
 
     <!-- Non connecté -->
@@ -57,16 +52,20 @@
 
     <!-- Connecté -->
     <template v-else>
-      <v-list-item prepend-icon="mdi-view-dashboard" title="Dashboard" to="/dashboard" @click="drawer = false" />
-      <v-list-item prepend-icon="mdi-account-group" title="Galerie" to="/community" @click="drawer = false" />
-      <v-list-item prepend-icon="mdi-cards" title="Jeux" to="/games" @click="drawer = false" />
-      <v-list-item prepend-icon="mdi-account" title="Profil" :to="{ name: 'profile' }" @click="drawer = false" />
+      <v-list-item prepend-icon="mdi-account-group" title="Communauté" to="/community" @click="drawer = false" />
+      <v-list-item prepend-icon="mdi-cards" title="Modèles" to="/games" @click="drawer = false" />
       <v-list-item prepend-icon="mdi-folder-multiple" title="Mes projets" to="/projects" @click="drawer = false" />
-      <v-list-item v-if="user.role === 'admin'" prepend-icon="mdi-cards-playing" title="Templates de jeu"
+      <v-list-item prepend-icon="mdi-account" title="Profil" :to="{ name: 'profile' }" @click="drawer = false" />
+
+      <v-divider v-if="user.role === 'admin'" />
+
+      <v-list-item v-if="user.role === 'admin'" prepend-icon="mdi-view-dashboard" title="Admin" to="/admin"
+        @click="drawer = false" />
+      <v-list-item v-if="user.role === 'admin'" prepend-icon="mdi-cards-playing" title="Modèles (admin)"
         to="/admin/templates" @click="drawer = false" />
       <v-list-item v-if="user.role === 'admin'" prepend-icon="mdi-shield-alert" title="Modération projets"
         to="/admin/projects" @click="drawer = false" />
-        <v-list-item v-if="user.role === 'admin'" prepend-icon="mdi-flag" title="Signalements" to="/admin/reports"
+      <v-list-item v-if="user.role === 'admin'" prepend-icon="mdi-flag" title="Signalements" to="/admin/reports"
         @click="drawer = false" />
       <v-list-item v-if="user.role === 'admin'" prepend-icon="mdi-format-list-bulleted-type" title="Référentiels"
         to="/admin/references" @click="drawer = false" />
@@ -75,9 +74,7 @@
 
       <v-list-item prepend-icon="mdi-logout" title="Déconnexion" :disabled="logoutLoading" @click="logout" />
     </template>
-
   </v-navigation-drawer>
-
 </template>
 
 <script setup>

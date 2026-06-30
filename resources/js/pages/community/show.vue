@@ -6,7 +6,7 @@
 
     <template v-else-if="project">
       <div class="d-flex align-center ga-3 mb-4 flex-wrap">
-        <v-btn icon="mdi-arrow-left" variant="text" @click="$router.push('/community')" />
+        <v-btn icon="mdi-arrow-left" variant="text" @click="$router.back()" />
         <h1 class="text-h4">{{ project.name }}</h1>
         <v-chip v-if="project.type" color="primary" variant="tonal" label>{{ project.type }}</v-chip>
       </div>

@@ -561,7 +561,7 @@ async function saveInfos() {
   }
 }
 
-function goBack() { router.push('/admin/templates') }
+function goBack() { router.back() }
 
 onMounted(() => {
   loadTypes()

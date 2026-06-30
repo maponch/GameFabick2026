@@ -615,7 +615,7 @@ async function saveDuplicationPreference(value) {
   }
 }
 
-function goBack() { router.push(`/projects/${projectId}`) }
+function goBack() { router.back() }
 
 onMounted(() => {
   loadTypes()

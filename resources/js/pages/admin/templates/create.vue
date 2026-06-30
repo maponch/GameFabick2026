@@ -156,7 +156,7 @@ async function submit() {
   }
 }
 
-function goBack() { router.push('/admin/templates') }
+function goBack() { router.back() }
 
 onMounted(async () => {
   loadTypes()

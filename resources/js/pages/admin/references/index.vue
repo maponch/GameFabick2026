@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <div class="d-flex align-center ga-3 mb-6">
-      <v-btn icon="mdi-arrow-left" variant="text" @click="$router.push('/admin')" />
+      <v-btn icon="mdi-arrow-left" variant="text" @click="$router.back()" />
       <h1 class="text-h4">Référentiels</h1>
     </div>
 

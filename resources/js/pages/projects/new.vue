@@ -1,7 +1,7 @@
 <template>
   <v-container max-width="900" class="py-6">
     <div class="d-flex align-center ga-3 mb-4">
-      <v-btn icon="mdi-arrow-left" variant="text" @click="$router.push('/projects')" />
+      <v-btn icon="mdi-arrow-left" variant="text" @click="$router.back()" />
       <h1 class="text-h4">Créer un projet</h1>
     </div>
 

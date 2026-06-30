@@ -2,24 +2,19 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { api } from '../api'
 
 import Landing from '../pages/Landing.vue'
-import Dashboard from '../pages/Dashboard.vue'
 import UserIndex from '../pages/user/index.vue'
 
 const routes = [
   { path: '/', component: Landing },
-  { path: '/login', component: () => import('../pages/auth/Login.vue') },
-  { path: '/register', component: () => import('../pages/auth/Register.vue') },
-  { path: '/forgot-password', component: () => import('../pages/auth/ForgotPassword.vue') },
-  { path: '/reset-password', component: () => import('../pages/auth/ResetPassword.vue') },
+  { path: '/login', component: () => import('../pages/auth/Login.vue'), meta: { guestOnly: true } },
+  { path: '/register', component: () => import('../pages/auth/Register.vue'), meta: { guestOnly: true } },
+  { path: '/forgot-password', component: () => import('../pages/auth/ForgotPassword.vue'), meta: { guestOnly: true } },
+  { path: '/reset-password', component: () => import('../pages/auth/ResetPassword.vue'), meta: { guestOnly: true } },
   { path: '/verify-email', component: () => import('../pages/auth/VerifyEmail.vue') },
-  { path: '/restore-account', component: () => import('../pages/auth/RestoreAccount.vue') },
+  { path: '/restore-account', component: () => import('../pages/auth/RestoreAccount.vue'), meta: { guestOnly: true } },
   { path: '/2fa-verify', component: () => import('../pages/auth/TwoFactorVerify.vue') },
-  { path: '/cgu', component: () => import('../pages/legal/cgu.vue')},
-  {
-    path: '/dashboard',
-    component: Dashboard,
-    meta: { requiresAuth: true }
-  },
+  { path: '/cgu', component: () => import('../pages/legal/cgu.vue') },
+
   {
     path: '/user',
     name: 'profile',
@@ -77,16 +72,6 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
-    path: '/projects/:id',
-    component: () => import('../pages/projects/show.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/projects/:id/edit',
-    component: () => import('../pages/projects/edit.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
     path: '/projects',
     component: () => import('../pages/projects/index.vue'),
     meta: { requiresAuth: true }
@@ -95,6 +80,16 @@ const routes = [
     path: '/projects/new',
     component: () => import('../pages/projects/new.vue'),
     meta: { requiresAuth: true },
+  },
+  {
+    path: '/projects/:id',
+    component: () => import('../pages/projects/show.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/projects/:id/edit',
+    component: () => import('../pages/projects/edit.vue'),
+    meta: { requiresAuth: true }
   },
   {
     path: '/community',
@@ -106,7 +101,13 @@ const routes = [
     component: () => import('../pages/community/show.vue'),
     meta: { requiresAuth: true }
   },
-  { path: '/:pathMatch(.*)*', redirect: '/' } // 404 → accueil
+
+  {
+    path: '/:pathMatch(.*)*',
+    component: () => import('../pages/errors/NotFound.vue'),
+  },
+  
+  { path: '/dashboard', redirect: '/community' },
 ]
 
 const router = createRouter({
@@ -114,7 +115,6 @@ const router = createRouter({
   routes,
 })
 
-// Vérifie l'auth via l'API, pas le localStorage
 let currentUser = null
 
 async function getUser() {
@@ -130,24 +130,36 @@ async function getUser() {
   }
 }
 
-// Export pour réutilisation dans les composants
 export function clearUser() { currentUser = null }
 export { getUser }
 
 router.beforeEach(async (to) => {
+  // Guard guest-only : si déjà connecté, on renvoie vers /community
+  if (to.meta.guestOnly) {
+    const user = await getUser()
+    if (user) return { path: '/community' }
+    return true
+  }
+
   if (!to.meta.requiresAuth) return true
 
   const user = await getUser()
 
-  // Non connecté → login
-  if (!user) return { path: '/login' }
+  // Non connecté → /login avec retour planifié
+  if (!user) {
+    return {
+      path: '/login',
+      query: { redirect: to.fullPath !== '/' ? to.fullPath : undefined },
+    }
+  }
 
   if (!user.email_verified_at && to.path !== '/verify-email') {
     return { path: '/verify-email' }
   }
 
-  // Page admin → vérification du rôle
-  if (to.meta.requiresAdmin && user.role !== 'admin') return { path: '/dashboard' }
+  if (to.meta.requiresAdmin && user.role !== 'admin') {
+    return { path: '/community' }
+  }
 
   return true
 })

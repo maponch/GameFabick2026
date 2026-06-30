@@ -109,21 +109,19 @@ async function login() {
     await api.get('/sanctum/csrf-cookie')
     const { data } = await api.post('/login', form.value)
 
-    // ✅ Si 2FA requis, redirige vers la page de vérification
+    // 2FA requis → redirection vers vérification
     if (data.two_factor_required) {
       router.push({
         path: '/2fa-verify',
-        query: { email: form.value.email, method: data.method }
+        query: { email: form.value.email, method: data.method },
       })
       return
     }
 
-    // Connexion normale
-    if (data.user?.role === 'admin') {
-      router.push('/admin')
-    } else {
-      router.push('/dashboard')
-    }
+    // Connexion réussie : retour vers l'URL initiale si fournie, sinon /community
+    const redirect = router.currentRoute.value.query.redirect
+    const target = typeof redirect === 'string' && redirect.startsWith('/') ? redirect : '/community'
+    router.push(target)
 
   } catch (e) {
     if (e.response?.status === 422) {
