@@ -17,9 +17,13 @@
 import { ref, computed } from 'vue'
 import FreeLayoutPdf from './layouts/pdf/FreeLayoutPdf.vue'
 import TitleTextLayoutPdf from './layouts/pdf/TitleTextLayoutPdf.vue'
+import QuizCardLayoutPdf from './layouts/pdf/QuizCardLayoutPdf.vue'
+import SpeedColorLayoutPdf from './layouts/pdf/SpeedColorLayoutPdf.vue'
 
 const LAYOUT_MAP = {
   'title-text': TitleTextLayoutPdf,
+  'quiz-card': QuizCardLayoutPdf,
+  'speed-color': SpeedColorLayoutPdf,
 }
 
 const props = defineProps({

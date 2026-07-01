@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <div class="d-flex ga-2">
+    <div class="d-flex ga-2 mb-4">
       <v-btn color="primary" prepend-icon="mdi-cards-playing" to="/games">
         Depuis un modèle
       </v-btn>
@@ -31,10 +31,6 @@
         </v-chip>
       </template>
 
-      <template #item.mode="{ item }">
-        <span class="text-body-2">{{ modeLabel(item.mode) }}</span>
-      </template>
-
       <template #item.updated_at="{ item }">
         <span class="text-body-2">{{ formatDate(item.updated_at) }}</span>
       </template>
@@ -49,9 +45,25 @@
       </template>
 
       <template #item.actions="{ item }">
-        <v-btn icon="mdi-eye" size="small" variant="text" :to="`/projects/${item.id}`" />
         <v-btn icon="mdi-pencil" size="small" variant="text" :to="`/projects/${item.id}/edit`" />
-        <v-btn icon="mdi-delete" size="small" variant="text" color="error" @click="askDelete(item)" />
+
+        <v-menu>
+          <template #activator="{ props }">
+            <v-btn icon="mdi-dots-vertical" size="small" variant="text" v-bind="props" />
+          </template>
+          <v-list>
+            <v-list-item title="Voir" prepend-icon="mdi-eye" :to="`/projects/${item.id}`" />
+            <v-divider />
+            <v-list-item v-if="item.status !== 'published'" title="Publier" prepend-icon="mdi-check-circle"
+              @click="changeStatus(item, 'published')" />
+            <v-list-item v-if="item.status !== 'draft'" title="Repasser en brouillon" prepend-icon="mdi-pencil-circle"
+              @click="changeStatus(item, 'draft')" />
+            <v-list-item v-if="item.status !== 'archived'" title="Archiver" prepend-icon="mdi-archive"
+              @click="changeStatus(item, 'archived')" />
+            <v-divider />
+            <v-list-item title="Supprimer" prepend-icon="mdi-delete" base-color="error" @click="askDelete(item)" />
+          </v-list>
+        </v-menu>
       </template>
     </v-data-table>
 
@@ -98,10 +110,11 @@ const defaults = {
   status: null,
   complete: null,
   rating_min: null,
+  format: null,
 }
 const filterState = useFiltersInUrl(defaults)
 
-const filterConfig = [
+const filterConfig = computed(() => [
   { key: 'search', type: 'text', label: 'Rechercher' },
   {
     key: 'status', type: 'select', label: 'Statut', options: [
@@ -110,6 +123,7 @@ const filterConfig = [
       { title: 'Archivé', value: 'archived' },
     ]
   },
+  { key: 'format', type: 'select', label: 'Format', options: formatOptions.value },
   { key: 'complete', type: 'toggle', label: 'Complet uniquement' },
   {
     key: 'rating_min', type: 'select', label: 'Note minimum', options: [
@@ -119,7 +133,7 @@ const filterConfig = [
       { title: '★ 5', value: 5 },
     ]
   },
-]
+])
 
 const headers = [
   { title: 'Nom', key: 'name', sortable: true },
@@ -128,9 +142,8 @@ const headers = [
   { title: 'Note', key: 'rating', sortable: false, width: 140 },
   { title: 'Type', key: 'type', sortable: true },
   { title: 'Modèle', key: 'template', sortable: true },
-  { title: 'Mode', key: 'mode', sortable: true, width: 140 },
   { title: 'Dernière modif', key: 'updated_at', sortable: true, width: 150 },
-  { title: 'Actions', key: 'actions', sortable: false, align: 'end', width: 100 },
+  { title: 'Actions', key: 'actions', sortable: false, align: 'end', width: 110 },
 ]
 
 const filteredProjects = computed(() => {
@@ -146,6 +159,7 @@ const filteredProjects = computed(() => {
     )
   }
   if (f.status) list = list.filter(p => p.status === f.status)
+  if (f.format) list = list.filter(p => p.formats?.some(x => x.slug === f.format))
   if (f.complete === true) list = list.filter(p => p.publishable?.ready === true)
   if (f.rating_min) list = list.filter(p => (p.average_rating ?? 0) >= f.rating_min)
 
@@ -156,12 +170,13 @@ const emptyMessage = computed(() => {
   if (projects.value.length === 0) return 'Vous n\'avez aucun projet pour l\'instant.'
   return 'Aucun projet ne correspond à votre recherche.'
 })
-
-function modeLabel(mode) {
-  if (mode === 'printable') return 'Impression'
-  if (mode === 'existing_deck') return 'Pense-bête'
-  return mode
-}
+const formatOptions = computed(() => {
+  const m = new Map()
+  for (const p of projects.value) {
+    for (const f of (p.formats ?? [])) m.set(f.slug, f.name)
+  }
+  return [...m.entries()].map(([slug, name]) => ({ title: name, value: slug }))
+})
 
 function formatDate(date) {
   if (!date) return ''
@@ -200,6 +215,17 @@ async function confirmDelete() {
     deleting.value = false
   }
 }
+async function changeStatus(item, newStatus) {
+  try {
+    await api.patch(`/projects/${item.id}/status`, { status: newStatus })
+    snackbar.value = { show: true, message: `Statut mis à jour.`, color: 'success' }
+    await loadProjects()
+  } catch (e) {
+    const msg = e.response?.data?.errors?.status?.[0] ?? 'Erreur lors du changement de statut.'
+    snackbar.value = { show: true, message: msg, color: 'error' }
+  }
+}
+
 
 onMounted(loadProjects)
 </script>

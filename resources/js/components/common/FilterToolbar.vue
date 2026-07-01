@@ -50,7 +50,7 @@ const props = defineProps({
   filters: { type: Array, required: true },
   defaults: { type: Object, default: () => ({}) },
 })
-const expanded = ref(true)
+const expanded = ref(false)
 
 const emit = defineEmits(['update:modelValue'])
 

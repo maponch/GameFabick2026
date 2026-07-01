@@ -147,6 +147,9 @@ function buildChips(project) {
   if (project.allow_duplication) {
     chips.push({ label: 'Dupliquable', color: 'success', icon: 'mdi-content-copy' })
   }
+  if (project.publishable?.ready) {
+    chips.push({ label: 'Complet', color: 'success', icon: 'mdi-check-circle' })
+  }
   return chips
 }
 

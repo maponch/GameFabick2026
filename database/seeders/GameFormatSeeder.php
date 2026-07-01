@@ -10,9 +10,11 @@ class GameFormatSeeder extends Seeder
     public function run(): void
     {
         $formats = [
-            ['name' => 'Cartes à imprimer', 'slug' => 'impression'],
+            ['name' => 'Cartes à imprimer',      'slug' => 'impression'],
             ['name' => 'Jeu de cartes classique', 'slug' => 'cartes-classiques'],
-            ['name' => 'Dés', 'slug' => 'des'],
+            ['name' => 'Dés',                     'slug' => 'des'],
+            ['name' => 'Sablier',                 'slug' => 'sablier'],
+            ['name' => 'Corde',                   'slug' => 'corde'],
         ];
 
         foreach ($formats as $format) {

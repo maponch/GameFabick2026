@@ -82,7 +82,6 @@ defineExpose({ printArea })
 
 .cheatsheet td:first-child {
   vertical-align: middle;
-  /* ← centre verticalement dans la cellule */
 }
 .card-chip {
   display: inline-flex;

@@ -26,7 +26,12 @@ class ProjectController extends Controller
                 'min_players'  => $p->min_players,
                 'max_players'  => $p->max_players,
                 'type'         => $p->type?->name,
-                'template'     => $p->template?->name,
+                'formats'      => $p->formats->map(fn ($f) => [
+                                                            'id'   => $f->id,
+                                                            'name' => $f->name,
+                                                            'slug' => $f->slug,
+                                                        ]),
+        'template'     => $p->template?->name,
                 'publishable'  => $p->publishabilityReport(),
                 'average_rating' => $p->averageRating(),
                 'ratings_count'  => $p->ratingsCount(),
